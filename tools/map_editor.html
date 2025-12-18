@@ -383,7 +383,7 @@
             <!-- Center Panel - Map -->
             <div class="center-panel">
                 <div class="panel">
-                    <h3>地图编辑 <span style="font-size: 12px; color: #aaa;">(左键绘制，右键删除实体)</span></h3>
+                    <h3>地图编辑 <span style="font-size: 12px; color: #aaa;">(左键绘制，Shift+拖动连续绘制，右键删除实体)</span></h3>
                     <div class="map-container">
                         <div class="map-grid" id="mapGrid"></div>
                     </div>
@@ -660,8 +660,9 @@
 
         function handleCellHover(x, y, e) {
             document.getElementById('coords').textContent = `坐标: (${x}, ${y})`;
-
-            if (isDrawing && !portalPairingMode && currentTool && !currentEnemy && !currentItem) {
+            // 只更新坐标显示，不自动绘制
+            // 如果需要拖动绘制，按住 Shift 键
+            if (isDrawing && e.shiftKey && !portalPairingMode && currentTool && !currentEnemy && !currentItem) {
                 paintCell(x, y);
             }
         }
