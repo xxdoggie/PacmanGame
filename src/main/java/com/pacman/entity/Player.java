@@ -49,7 +49,10 @@ public class Player extends Entity {
     
     /** 冰面滑行时的惯性方向 */
     private Direction iceDirection;
-    
+
+    /** 最后的朝向（用于direction为NONE时的渲染） */
+    private Direction lastFacingDirection;
+
     /** 游戏地图引用 */
     private GameMap gameMap;
     
@@ -71,6 +74,7 @@ public class Player extends Entity {
         this.speedModifier = 1.0;
         this.onIce = false;
         this.iceDirection = Direction.NONE;
+        this.lastFacingDirection = Direction.RIGHT;
     }
     
     /**
@@ -104,31 +108,57 @@ public class Player extends Entity {
         // 计算实际速度
         double actualSpeed = speed * speedModifier;
         
+        // 尝试切换到预输入的方向（在移动之前检查）
+        tryChangeDirection();
+
         // 处理移动
         if (direction != Direction.NONE || (onIce && iceDirection != Direction.NONE)) {
             Direction moveDir = onIce ? iceDirection : direction;
-            
-            double newX = gridX + moveDir.getDx() * actualSpeed * deltaTime;
-            double newY = gridY + moveDir.getDy() * actualSpeed * deltaTime;
-            
-            // 检查是否可以移动（考虑穿墙效果）
-            boolean canWallPass = hasEffect(ItemType.WALL_PASS);
-            
-            if (gameMap != null && gameMap.canMoveTo(newX, newY, canWallPass)) {
-                gridX = newX;
-                gridY = newY;
 
-                // 处理地图边界传送
-                handleMapBoundary();
-            } else if (!onIce) {
-                // 撞墙后对齐到格子中心并停止移动
+            // 更新最后朝向
+            lastFacingDirection = moveDir;
+
+            // 先检查前方是否有墙（基于当前位置的整数格子坐标）
+            boolean canWallPass = hasEffect(ItemType.WALL_PASS);
+            int nextTileX = getTileX() + moveDir.getDx();
+            int nextTileY = getTileY() + moveDir.getDy();
+
+            // 检查是否接近格子边缘且前方是墙
+            double distToNextTileX = (moveDir.getDx() != 0) ?
+                    (moveDir.getDx() > 0 ? Math.ceil(gridX) - gridX : gridX - Math.floor(gridX)) : 1.0;
+            double distToNextTileY = (moveDir.getDy() != 0) ?
+                    (moveDir.getDy() > 0 ? Math.ceil(gridY) - gridY : gridY - Math.floor(gridY)) : 1.0;
+            double distToEdge = Math.min(distToNextTileX, distToNextTileY);
+
+            // 如果接近边缘且前方是墙，停止移动
+            if (distToEdge < 0.1 && gameMap != null && !gameMap.canMoveTo(nextTileX, nextTileY, canWallPass)) {
                 alignToGrid();
                 direction = Direction.NONE;
+                // 清除同方向的预输入，避免继续撞墙
+                if (nextDirection == moveDir) {
+                    nextDirection = Direction.NONE;
+                }
+            } else {
+                double newX = gridX + moveDir.getDx() * actualSpeed * deltaTime;
+                double newY = gridY + moveDir.getDy() * actualSpeed * deltaTime;
+
+                if (gameMap != null && gameMap.canMoveTo(newX, newY, canWallPass)) {
+                    gridX = newX;
+                    gridY = newY;
+
+                    // 处理地图边界传送
+                    handleMapBoundary();
+                } else if (!onIce) {
+                    // 撞墙后对齐到格子中心并停止移动
+                    alignToGrid();
+                    direction = Direction.NONE;
+                    // 清除同方向的预输入
+                    if (nextDirection == moveDir) {
+                        nextDirection = Direction.NONE;
+                    }
+                }
             }
         }
-        
-        // 尝试切换到预输入的方向
-        tryChangeDirection();
         
         // 重置速度修正
         speedModifier = 1.0;
@@ -362,9 +392,10 @@ public class Player extends Entity {
                 Constants.PLAYER_RADIUS * 2
         );
         
-        // 绘制嘴巴（根据方向）
+        // 绘制嘴巴（根据方向，direction为NONE时使用lastFacingDirection）
         gc.setFill(Color.web(Constants.COLOR_FLOOR));
-        double mouthAngle = switch (direction) {
+        Direction facingDir = (direction != Direction.NONE) ? direction : lastFacingDirection;
+        double mouthAngle = switch (facingDir) {
             case RIGHT -> 0;
             case DOWN -> 90;
             case LEFT -> 180;

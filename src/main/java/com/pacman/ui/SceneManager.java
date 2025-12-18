@@ -30,7 +30,8 @@ public class SceneManager {
     private Game game;
     
     /** 当前已解锁的最大关卡 */
-    private int unlockedLevel = 1;
+    // TODO: 临时解锁所有关卡用于测试，正式发布时改回 1
+    private int unlockedLevel = Constants.TOTAL_LEVELS;
     
     /**
      * 私有构造函数（单例模式）
