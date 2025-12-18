@@ -145,7 +145,12 @@ public class Player extends Entity {
             // 如果接近边缘且前方是墙或单向通道阻挡，停止移动
             if (distToEdge < 0.1 && gameMap != null && !gameMap.canMoveTo(nextTileX, nextTileY, fromDirection, canWallPass)) {
                 alignToGrid();
-                direction = Direction.NONE;
+                if (onIce) {
+                    // 在冰面上撞墙，停止滑行
+                    iceDirection = Direction.NONE;
+                } else {
+                    direction = Direction.NONE;
+                }
                 // 清除同方向的预输入，避免继续撞墙
                 if (nextDirection == moveDir) {
                     nextDirection = Direction.NONE;
