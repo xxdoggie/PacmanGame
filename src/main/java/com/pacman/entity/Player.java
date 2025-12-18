@@ -212,6 +212,11 @@ public class Player extends Entity {
             return;
         }
 
+        // 在冰面上滑行时不能改变方向
+        if (onIce) {
+            return;
+        }
+
         // 检查是否接近格子中心
         double centerDist = Math.abs(gridX - Math.round(gridX)) + Math.abs(gridY - Math.round(gridY));
         if (centerDist < 0.15) {
@@ -225,11 +230,6 @@ public class Player extends Entity {
                 direction = nextDirection;
                 nextDirection = Direction.NONE;
                 alignToGrid();
-                
-                // 如果在冰面上改变方向，更新惯性方向
-                if (onIce) {
-                    iceDirection = direction;
-                }
             }
         }
     }
@@ -358,8 +358,8 @@ public class Player extends Entity {
      */
     public void setNextDirection(Direction direction) {
         this.nextDirection = direction;
-        // 如果当前没有在移动，直接设置当前方向
-        if (this.direction == Direction.NONE) {
+        // 如果当前没有在移动且不在冰面上，直接设置当前方向
+        if (this.direction == Direction.NONE && !onIce) {
             this.direction = direction;
         }
     }

@@ -65,7 +65,9 @@ public class GameMap {
     private void initEmptyMap() {
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                tiles[y][x] = new Tile(x, y, TileType.FLOOR);
+                Tile tile = new Tile(x, y, TileType.FLOOR);
+                tile.setGameMap(this);
+                tiles[y][x] = tile;
             }
         }
     }
@@ -78,10 +80,12 @@ public class GameMap {
      */
     public void setTile(int x, int y, TileType type) {
         if (isValidPosition(x, y)) {
-            tiles[y][x] = new Tile(x, y, type);
+            Tile tile = new Tile(x, y, type);
+            tile.setGameMap(this);
+            tiles[y][x] = tile;
         }
     }
-    
+
     /**
      * 设置格子类型和方向
      * @param x X坐标
@@ -93,6 +97,7 @@ public class GameMap {
         if (isValidPosition(x, y)) {
             Tile tile = new Tile(x, y, type);
             tile.setDirection(direction);
+            tile.setGameMap(this);
             tiles[y][x] = tile;
         }
     }

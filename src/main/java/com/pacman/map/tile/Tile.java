@@ -27,7 +27,10 @@ public class Tile {
     
     /** 关联的另一个格子（用于传送门） */
     protected Tile linkedTile;
-    
+
+    /** 游戏地图引用（用于跳板落点检查） */
+    protected com.pacman.map.GameMap gameMap;
+
     /**
      * 构造函数
      * @param gridX X坐标
@@ -331,21 +334,40 @@ public class Tile {
         if (player.isJumping()) {
             return; // 已经在跳跃中
         }
-        
+
         // 根据跳板方向计算目标位置
         Direction jumpDir = (direction != Direction.NONE) ? direction : player.getDirection();
         if (jumpDir == Direction.NONE) {
             jumpDir = Direction.UP; // 默认向上跳
         }
-        
-        double targetX = gridX + jumpDir.getDx() * Constants.JUMP_PAD_DISTANCE;
-        double targetY = gridY + jumpDir.getDy() * Constants.JUMP_PAD_DISTANCE;
-        
-        // 边界检查
-        targetX = Math.max(0, Math.min(Constants.MAP_COLS - 1, targetX));
-        targetY = Math.max(0, Math.min(Constants.MAP_ROWS - 1, targetY));
-        
-        player.startJump(targetX, targetY);
+
+        // 逐格检查，找到最远的有效落点
+        int targetX = gridX;
+        int targetY = gridY;
+
+        for (int dist = 1; dist <= Constants.JUMP_PAD_DISTANCE; dist++) {
+            int testX = gridX + jumpDir.getDx() * dist;
+            int testY = gridY + jumpDir.getDy() * dist;
+
+            // 边界检查
+            if (testX < 0 || testX >= Constants.MAP_COLS || testY < 0 || testY >= Constants.MAP_ROWS) {
+                break; // 超出地图边界，使用上一个有效位置
+            }
+
+            // 检查是否是墙（需要gameMap引用）
+            if (gameMap != null && !gameMap.canMoveTo(testX, testY, false)) {
+                break; // 遇到墙，使用上一个有效位置
+            }
+
+            // 更新有效目标位置
+            targetX = testX;
+            targetY = testY;
+        }
+
+        // 只有当目标位置与当前位置不同时才跳跃
+        if (targetX != gridX || targetY != gridY) {
+            player.startJump(targetX, targetY);
+        }
     }
     
     /**
@@ -410,7 +432,11 @@ public class Tile {
     public void setLinkedTile(Tile linkedTile) {
         this.linkedTile = linkedTile;
     }
-    
+
+    public void setGameMap(com.pacman.map.GameMap gameMap) {
+        this.gameMap = gameMap;
+    }
+
     public boolean isWalkable() {
         return type.isWalkable();
     }
