@@ -233,6 +233,10 @@ public class Player extends Entity {
             Direction fromDirection = nextDirection.getOpposite();
             if (gameMap.canMoveTo(testX, testY, fromDirection, canWallPass)) {
                 direction = nextDirection;
+                // 如果在冰面上，也更新滑行方向，这样玩家会继续沿新方向滑行
+                if (onIce) {
+                    iceDirection = nextDirection;
+                }
                 nextDirection = Direction.NONE;
                 alignToGrid();
             }

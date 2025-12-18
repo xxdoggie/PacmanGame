@@ -145,11 +145,13 @@ public class GameMap {
     
     /**
      * 在所有空地上添加豆子
+     * 只在FLOOR类型的格子上放置豆子，不在特殊地块（传送门、冰面、跳板等）上放置
      */
     public void addDotsOnAllFloors() {
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                if (tiles[y][x].isWalkable()) {
+                // 只在FLOOR类型的格子上放豆子，排除传送门、冰面、跳板等特殊地块
+                if (tiles[y][x].getType() == TileType.FLOOR) {
                     // 不在玩家出生点放豆子
                     if (x != spawnX || y != spawnY) {
                         addDot(x, y);
