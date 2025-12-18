@@ -184,50 +184,54 @@ public class GameMap {
      */
     public Enemy addEnemy(int x, int y, String enemyType) {
         // 验证生成位置是否有效，如果无效则寻找最近的有效位置
-        int validX = x;
-        int validY = y;
+        int spawnX = x;
+        int spawnY = y;
         if (!isValidPosition(x, y) || !tiles[y][x].isWalkable()) {
             // 寻找最近的有效位置
-            boolean found = false;
-            for (int radius = 1; radius < Math.max(width, height) && !found; radius++) {
-                for (int dx = -radius; dx <= radius && !found; dx++) {
-                    for (int dy = -radius; dy <= radius && !found; dy++) {
+            outerLoop:
+            for (int radius = 1; radius < Math.max(width, height); radius++) {
+                for (int dx = -radius; dx <= radius; dx++) {
+                    for (int dy = -radius; dy <= radius; dy++) {
                         int newX = x + dx;
                         int newY = y + dy;
                         if (isValidPosition(newX, newY) && tiles[newY][newX].isWalkable()) {
-                            validX = newX;
-                            validY = newY;
-                            found = true;
+                            spawnX = newX;
+                            spawnY = newY;
+                            break outerLoop;
                         }
                     }
                 }
             }
         }
 
+        // 创建 final 变量供 lambda 使用
+        final int finalSpawnX = spawnX;
+        final int finalSpawnY = spawnY;
+
         Enemy enemy = switch (enemyType.toLowerCase()) {
-            case "chaser" -> new Chaser(validX, validY);
-            case "wanderer" -> new Wanderer(validX, validY);
-            case "hunter" -> new Hunter(validX, validY);
+            case "chaser" -> new Chaser(finalSpawnX, finalSpawnY);
+            case "wanderer" -> new Wanderer(finalSpawnX, finalSpawnY);
+            case "hunter" -> new Hunter(finalSpawnX, finalSpawnY);
             case "patroller" -> {
-                Patroller p = new Patroller(validX, validY);
+                Patroller p = new Patroller(finalSpawnX, finalSpawnY);
                 p.setGameMap(this);
                 p.generateDefaultPath();
                 yield p;
             }
             case "phantom" -> {
-                Phantom ph = new Phantom(validX, validY);
+                Phantom ph = new Phantom(finalSpawnX, finalSpawnY);
                 ph.setGameMap(this);
                 ph.generateDefaultPath();
                 yield ph;
             }
-            default -> new Wanderer(validX, validY);
+            default -> new Wanderer(finalSpawnX, finalSpawnY);
         };
 
         enemy.setGameMap(this);
         enemies.add(enemy);
 
         // 移除该位置的豆子
-        dots.removeIf(dot -> dot.getTileX() == validX && dot.getTileY() == validY);
+        dots.removeIf(dot -> dot.getTileX() == finalSpawnX && dot.getTileY() == finalSpawnY);
 
         return enemy;
     }
