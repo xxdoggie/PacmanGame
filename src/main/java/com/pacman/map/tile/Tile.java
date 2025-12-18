@@ -333,6 +333,7 @@ public class Tile {
     
     /**
      * 处理跳板效果
+     * 向移动方向搜索最近的可落脚点（可以穿越墙壁）
      * @param player 玩家
      */
     private void handleJumpPad(Player player) {
@@ -340,37 +341,40 @@ public class Tile {
             return; // 已经在跳跃中
         }
 
-        // 根据跳板方向计算目标位置
+        // 根据跳板方向或玩家移动方向确定跳跃方向
         Direction jumpDir = (direction != Direction.NONE) ? direction : player.getDirection();
         if (jumpDir == Direction.NONE) {
-            jumpDir = Direction.UP; // 默认向上跳
+            return; // 没有方向，不跳跃
         }
 
-        // 逐格检查，找到最远的有效落点
-        int targetX = gridX;
-        int targetY = gridY;
+        // 向移动方向搜索最近的可落脚点（可以穿越墙壁）
+        int targetX = -1;
+        int targetY = -1;
 
-        for (int dist = 1; dist <= Constants.JUMP_PAD_DISTANCE; dist++) {
+        // 确定搜索范围（取地图较大的维度）
+        int maxSearchDistance = Math.max(Constants.MAP_COLS, Constants.MAP_ROWS);
+
+        for (int dist = 1; dist <= maxSearchDistance; dist++) {
             int testX = gridX + jumpDir.getDx() * dist;
             int testY = gridY + jumpDir.getDy() * dist;
 
             // 边界检查
             if (testX < 0 || testX >= Constants.MAP_COLS || testY < 0 || testY >= Constants.MAP_ROWS) {
-                break; // 超出地图边界，使用上一个有效位置
+                break; // 超出地图边界，停止搜索
             }
 
-            // 检查是否是墙（需要gameMap引用）
-            if (gameMap != null && !gameMap.canMoveTo(testX, testY, false)) {
-                break; // 遇到墙，使用上一个有效位置
+            // 检查是否是可落脚点（不是墙）
+            if (gameMap != null && gameMap.canMoveTo(testX, testY, false)) {
+                // 找到第一个可落脚点（最近的）
+                targetX = testX;
+                targetY = testY;
+                break;
             }
-
-            // 更新有效目标位置
-            targetX = testX;
-            targetY = testY;
+            // 如果是墙，继续搜索（跳板可以穿越墙壁）
         }
 
-        // 只有当目标位置与当前位置不同时才跳跃
-        if (targetX != gridX || targetY != gridY) {
+        // 只有当找到有效落脚点时才跳跃
+        if (targetX != -1 && targetY != -1) {
             player.startJump(targetX, targetY);
         }
     }
