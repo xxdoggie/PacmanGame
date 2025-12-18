@@ -353,10 +353,12 @@ public class Tile {
      * @param player 玩家
      */
     private void handlePortal(Player player) {
-        if (linkedTile != null) {
+        if (linkedTile != null && player.canTeleport()) {
             // 传送到关联的传送门
             player.setGridX(linkedTile.getGridX());
             player.setGridY(linkedTile.getGridY());
+            // 设置传送冷却，防止立即传送回来
+            player.setPortalCooldown(0.5);
         }
     }
     

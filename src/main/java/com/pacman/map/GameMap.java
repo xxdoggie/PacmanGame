@@ -183,31 +183,52 @@ public class GameMap {
      * @return 添加的敌人对象
      */
     public Enemy addEnemy(int x, int y, String enemyType) {
+        // 验证生成位置是否有效，如果无效则寻找最近的有效位置
+        int validX = x;
+        int validY = y;
+        if (!isValidPosition(x, y) || !tiles[y][x].isWalkable()) {
+            // 寻找最近的有效位置
+            boolean found = false;
+            for (int radius = 1; radius < Math.max(width, height) && !found; radius++) {
+                for (int dx = -radius; dx <= radius && !found; dx++) {
+                    for (int dy = -radius; dy <= radius && !found; dy++) {
+                        int newX = x + dx;
+                        int newY = y + dy;
+                        if (isValidPosition(newX, newY) && tiles[newY][newX].isWalkable()) {
+                            validX = newX;
+                            validY = newY;
+                            found = true;
+                        }
+                    }
+                }
+            }
+        }
+
         Enemy enemy = switch (enemyType.toLowerCase()) {
-            case "chaser" -> new Chaser(x, y);
-            case "wanderer" -> new Wanderer(x, y);
-            case "hunter" -> new Hunter(x, y);
+            case "chaser" -> new Chaser(validX, validY);
+            case "wanderer" -> new Wanderer(validX, validY);
+            case "hunter" -> new Hunter(validX, validY);
             case "patroller" -> {
-                Patroller p = new Patroller(x, y);
+                Patroller p = new Patroller(validX, validY);
                 p.setGameMap(this);
                 p.generateDefaultPath();
                 yield p;
             }
             case "phantom" -> {
-                Phantom ph = new Phantom(x, y);
+                Phantom ph = new Phantom(validX, validY);
                 ph.setGameMap(this);
                 ph.generateDefaultPath();
                 yield ph;
             }
-            default -> new Wanderer(x, y);
+            default -> new Wanderer(validX, validY);
         };
-        
+
         enemy.setGameMap(this);
         enemies.add(enemy);
-        
+
         // 移除该位置的豆子
-        dots.removeIf(dot -> dot.getTileX() == x && dot.getTileY() == y);
-        
+        dots.removeIf(dot -> dot.getTileX() == validX && dot.getTileY() == validY);
+
         return enemy;
     }
     
@@ -241,18 +262,49 @@ public class GameMap {
     public boolean canMoveTo(double x, double y, boolean canWallPass) {
         int tileX = (int) Math.round(x);
         int tileY = (int) Math.round(y);
-        
+
         if (!isValidPosition(tileX, tileY)) {
             return false;
         }
-        
+
         Tile tile = tiles[tileY][tileX];
-        
+
         // 穿墙效果
         if (canWallPass) {
             return true;
         }
-        
+
+        return tile.isWalkable();
+    }
+
+    /**
+     * 检查是否可以从指定方向移动到目标位置
+     * @param x X坐标（可以是小数）
+     * @param y Y坐标（可以是小数）
+     * @param fromDirection 移动的来源方向（玩家是从哪个方向过来的）
+     * @param canWallPass 是否可以穿墙
+     * @return 是否可以移动
+     */
+    public boolean canMoveTo(double x, double y, Direction fromDirection, boolean canWallPass) {
+        int tileX = (int) Math.round(x);
+        int tileY = (int) Math.round(y);
+
+        if (!isValidPosition(tileX, tileY)) {
+            return false;
+        }
+
+        Tile tile = tiles[tileY][tileX];
+
+        // 穿墙效果
+        if (canWallPass) {
+            return true;
+        }
+
+        // 检查单向通道
+        if (tile.getType() == TileType.ONE_WAY) {
+            return tile.canEnterFrom(fromDirection);
+        }
+
         return tile.isWalkable();
     }
     

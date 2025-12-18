@@ -53,6 +53,9 @@ public class Player extends Entity {
     /** 最后的朝向（用于direction为NONE时的渲染） */
     private Direction lastFacingDirection;
 
+    /** 传送冷却时间（防止传送门无限循环） */
+    private double portalCooldown;
+
     /** 游戏地图引用 */
     private GameMap gameMap;
     
@@ -75,6 +78,7 @@ public class Player extends Entity {
         this.onIce = false;
         this.iceDirection = Direction.NONE;
         this.lastFacingDirection = Direction.RIGHT;
+        this.portalCooldown = 0;
     }
     
     /**
@@ -89,7 +93,12 @@ public class Player extends Entity {
     public void update(double deltaTime) {
         // 更新道具效果计时器
         updateEffects(deltaTime);
-        
+
+        // 更新传送冷却
+        if (portalCooldown > 0) {
+            portalCooldown -= deltaTime;
+        }
+
         // 更新致盲效果
         if (isBlinded) {
             blindTimer -= deltaTime;
@@ -130,8 +139,11 @@ public class Player extends Entity {
                     (moveDir.getDy() > 0 ? Math.ceil(gridY) - gridY : gridY - Math.floor(gridY)) : 1.0;
             double distToEdge = Math.min(distToNextTileX, distToNextTileY);
 
-            // 如果接近边缘且前方是墙，停止移动
-            if (distToEdge < 0.1 && gameMap != null && !gameMap.canMoveTo(nextTileX, nextTileY, canWallPass)) {
+            // 计算来源方向（玩家移动方向的反方向）
+            Direction fromDirection = moveDir.getOpposite();
+
+            // 如果接近边缘且前方是墙或单向通道阻挡，停止移动
+            if (distToEdge < 0.1 && gameMap != null && !gameMap.canMoveTo(nextTileX, nextTileY, fromDirection, canWallPass)) {
                 alignToGrid();
                 direction = Direction.NONE;
                 // 清除同方向的预输入，避免继续撞墙
@@ -142,7 +154,7 @@ public class Player extends Entity {
                 double newX = gridX + moveDir.getDx() * actualSpeed * deltaTime;
                 double newY = gridY + moveDir.getDy() * actualSpeed * deltaTime;
 
-                if (gameMap != null && gameMap.canMoveTo(newX, newY, canWallPass)) {
+                if (gameMap != null && gameMap.canMoveTo(newX, newY, fromDirection, canWallPass)) {
                     gridX = newX;
                     gridY = newY;
 
@@ -199,16 +211,17 @@ public class Player extends Entity {
         if (nextDirection == Direction.NONE || gameMap == null) {
             return;
         }
-        
+
         // 检查是否接近格子中心
         double centerDist = Math.abs(gridX - Math.round(gridX)) + Math.abs(gridY - Math.round(gridY));
         if (centerDist < 0.15) {
             // 检查新方向是否可行
             int testX = getTileX() + nextDirection.getDx();
             int testY = getTileY() + nextDirection.getDy();
-            
+
             boolean canWallPass = hasEffect(ItemType.WALL_PASS);
-            if (gameMap.canMoveTo(testX, testY, canWallPass)) {
+            Direction fromDirection = nextDirection.getOpposite();
+            if (gameMap.canMoveTo(testX, testY, fromDirection, canWallPass)) {
                 direction = nextDirection;
                 nextDirection = Direction.NONE;
                 alignToGrid();
@@ -454,5 +467,13 @@ public class Player extends Entity {
     
     public Direction getNextDirection() {
         return nextDirection;
+    }
+
+    public boolean canTeleport() {
+        return portalCooldown <= 0;
+    }
+
+    public void setPortalCooldown(double cooldown) {
+        this.portalCooldown = cooldown;
     }
 }
