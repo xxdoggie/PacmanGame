@@ -60,7 +60,14 @@ public class Phantom extends Enemy {
     public void update(double deltaTime) {
         // 更新隐身状态
         updateVisibility(deltaTime);
-        
+
+        // 隐身时速度加快
+        if (invisible) {
+            speed = Constants.PHANTOM_SPEED * 2.0;
+        } else {
+            speed = Constants.PHANTOM_SPEED;
+        }
+
         // 调用父类更新
         super.update(deltaTime);
     }
@@ -71,7 +78,7 @@ public class Phantom extends Enemy {
      */
     private void updateVisibility(double deltaTime) {
         visibilityTimer += deltaTime;
-        
+
         if (invisible) {
             // 隐身状态
             if (visibilityTimer >= invisibleDuration) {
@@ -79,13 +86,13 @@ public class Phantom extends Enemy {
                 invisible = false;
                 visibilityTimer = 0;
             }
-            // 更新透明度（渐变效果）
+            // 更新透明度（完全隐身）
             if (visibilityTimer < 0.3) {
-                opacity = 1.0 - visibilityTimer / 0.3 * 0.8; // 淡出
+                opacity = 1.0 - visibilityTimer / 0.3; // 快速淡出
             } else if (visibilityTimer > invisibleDuration - 0.3) {
-                opacity = 0.2 + (visibilityTimer - (invisibleDuration - 0.3)) / 0.3 * 0.8; // 淡入
+                opacity = (visibilityTimer - (invisibleDuration - 0.3)) / 0.3; // 淡入
             } else {
-                opacity = 0.2; // 完全隐身时仍有微弱可见
+                opacity = 0.0; // 完全隐身
             }
         } else {
             // 显形状态
@@ -142,6 +149,36 @@ public class Phantom extends Enemy {
     
     @Override
     protected void decideDirection() {
+        // 隐身时追逐玩家，更具威胁性
+        if (invisible && player != null) {
+            List<Direction> validDirs = getValidDirectionsNoReverse();
+            if (validDirs.isEmpty()) {
+                validDirs = getValidDirections();
+            }
+            if (validDirs.isEmpty()) {
+                direction = Direction.NONE;
+                return;
+            }
+
+            // 追逐玩家
+            double dx = player.getGridX() - gridX;
+            double dy = player.getGridY() - gridY;
+
+            Direction bestDir = validDirs.get(0);
+            double bestScore = Double.MIN_VALUE;
+
+            for (Direction dir : validDirs) {
+                double score = dir.getDx() * dx + dir.getDy() * dy;
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestDir = dir;
+                }
+            }
+
+            direction = bestDir;
+            return;
+        }
+
         if (patrolPath.isEmpty()) {
             // 没有路径时随机移动
             List<Direction> validDirs = getValidDirectionsNoReverse();
@@ -156,16 +193,16 @@ public class Phantom extends Enemy {
             }
             return;
         }
-        
+
         // 获取当前目标点
         int[] targetPoint = patrolPath.get(currentPathIndex);
-        
+
         // 检查是否到达目标点
         double distToTarget = Math.sqrt(
                 Math.pow(gridX - targetPoint[0], 2) +
                 Math.pow(gridY - targetPoint[1], 2)
         );
-        
+
         if (distToTarget < 0.2) {
             // 更新路径索引
             if (forwardPatrol) {
@@ -185,20 +222,20 @@ public class Phantom extends Enemy {
             }
             targetPoint = patrolPath.get(currentPathIndex);
         }
-        
+
         // 朝目标移动
         double dx = targetPoint[0] - gridX;
         double dy = targetPoint[1] - gridY;
-        
+
         List<Direction> validDirs = getValidDirections();
         if (validDirs.isEmpty()) {
             direction = Direction.NONE;
             return;
         }
-        
+
         Direction bestDir = validDirs.get(0);
         double bestScore = Double.MIN_VALUE;
-        
+
         for (Direction dir : validDirs) {
             double score = dir.getDx() * dx + dir.getDy() * dy;
             if (score > bestScore) {
@@ -206,7 +243,7 @@ public class Phantom extends Enemy {
                 bestDir = dir;
             }
         }
-        
+
         direction = bestDir;
     }
     

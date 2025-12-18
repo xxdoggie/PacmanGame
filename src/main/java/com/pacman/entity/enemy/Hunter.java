@@ -56,7 +56,9 @@ public class Hunter extends Enemy {
         // 更新追击状态
         if (isRushing) {
             rushDuration += deltaTime;
-            if (rushDuration >= MAX_RUSH_DURATION || !canSeePlayer()) {
+            // 只有超时才停止追击，不再因为看不到玩家就停止
+            // 这样猎手一旦发现玩家就会全力追击直到超时
+            if (rushDuration >= MAX_RUSH_DURATION) {
                 stopRush();
             }
         }
