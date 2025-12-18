@@ -297,14 +297,50 @@ public class Player extends Entity {
     private void onEffectEnd(ItemType type) {
         switch (type) {
             case WALL_PASS -> {
-                // 穿墙结束，如果在墙里面需要处理
-                System.out.println("穿墙效果结束");
+                // 穿墙结束，如果在墙里面需要传送到最近的安全位置
+                if (gameMap != null) {
+                    int tileX = getTileX();
+                    int tileY = getTileY();
+                    if (!gameMap.canMoveTo(tileX, tileY, false)) {
+                        // 玩家在墙内，寻找最近的安全位置
+                        int[] safePos = findNearestSafePosition(tileX, tileY);
+                        if (safePos != null) {
+                            gridX = safePos[0];
+                            gridY = safePos[1];
+                        }
+                    }
+                }
             }
             case MAGNET -> {
-                System.out.println("磁铁效果结束");
+                // 磁铁效果结束
             }
             default -> {}
         }
+    }
+
+    /**
+     * 寻找最近的安全位置（不在墙内）
+     * @param startX 起始X坐标
+     * @param startY 起始Y坐标
+     * @return 安全位置坐标 [x, y]，如果找不到返回null
+     */
+    private int[] findNearestSafePosition(int startX, int startY) {
+        // 从近到远搜索安全位置
+        for (int radius = 1; radius <= 5; radius++) {
+            for (int dx = -radius; dx <= radius; dx++) {
+                for (int dy = -radius; dy <= radius; dy++) {
+                    if (Math.abs(dx) != radius && Math.abs(dy) != radius) {
+                        continue; // 只检查当前半径的外圈
+                    }
+                    int x = startX + dx;
+                    int y = startY + dy;
+                    if (gameMap.canMoveTo(x, y, false)) {
+                        return new int[]{x, y};
+                    }
+                }
+            }
+        }
+        return null;
     }
     
     /**
@@ -337,12 +373,10 @@ public class Player extends Entity {
      * @return 是否成功消耗护盾
      */
     public boolean consumeShield() {
-        System.out.println("[SHIELD] consumeShield called, hasShield=" + hasShield);
         if (hasShield) {
             hasShield = false;
             // 护盾消耗后获得短暂无敌时间，防止连续碰撞
             invincibleTimer = 1.0;
-            System.out.println("[SHIELD] 护盾已消耗，设置无敌时间=" + invincibleTimer);
             return true;
         }
         return false;
