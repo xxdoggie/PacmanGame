@@ -337,10 +337,12 @@ public class Player extends Entity {
      * @return 是否成功消耗护盾
      */
     public boolean consumeShield() {
+        System.out.println("[SHIELD] consumeShield called, hasShield=" + hasShield);
         if (hasShield) {
             hasShield = false;
             // 护盾消耗后获得短暂无敌时间，防止连续碰撞
             invincibleTimer = 1.0;
+            System.out.println("[SHIELD] 护盾已消耗，设置无敌时间=" + invincibleTimer);
             return true;
         }
         return false;

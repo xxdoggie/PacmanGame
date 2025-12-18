@@ -419,16 +419,19 @@ public class GameMap {
 
         // 无敌状态下不会被碰撞
         if (player.isInvincible()) {
+            System.out.println("[SHIELD] 玩家无敌中，跳过碰撞检测");
             return false;
         }
 
         for (Enemy enemy : enemies) {
             if (enemy.collidesWithPlayer()) {
+                System.out.println("[SHIELD] 检测到碰撞! hasShield=" + player.hasShield() + ", isInvincible=" + player.isInvincible());
                 // 检查护盾
                 if (player.consumeShield()) {
-                    System.out.println("护盾抵挡了攻击！");
+                    System.out.println("[SHIELD] 护盾抵挡了攻击！开始无敌");
                     continue;
                 }
+                System.out.println("[SHIELD] 没有护盾，游戏结束");
                 return true; // 游戏结束
             }
         }
