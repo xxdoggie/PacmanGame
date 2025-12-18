@@ -56,6 +56,9 @@ public class Player extends Entity {
     /** 传送冷却时间（防止传送门无限循环） */
     private double portalCooldown;
 
+    /** 无敌时间（护盾消耗后的短暂无敌） */
+    private double invincibleTimer;
+
     /** 游戏地图引用 */
     private GameMap gameMap;
     
@@ -79,6 +82,7 @@ public class Player extends Entity {
         this.iceDirection = Direction.NONE;
         this.lastFacingDirection = Direction.RIGHT;
         this.portalCooldown = 0;
+        this.invincibleTimer = 0;
     }
     
     /**
@@ -97,6 +101,11 @@ public class Player extends Entity {
         // 更新传送冷却
         if (portalCooldown > 0) {
             portalCooldown -= deltaTime;
+        }
+
+        // 更新无敌时间
+        if (invincibleTimer > 0) {
+            invincibleTimer -= deltaTime;
         }
 
         // 更新致盲效果
@@ -330,9 +339,19 @@ public class Player extends Entity {
     public boolean consumeShield() {
         if (hasShield) {
             hasShield = false;
+            // 护盾消耗后获得短暂无敌时间，防止连续碰撞
+            invincibleTimer = 1.0;
             return true;
         }
         return false;
+    }
+
+    /**
+     * 检查是否处于无敌状态
+     * @return 是否无敌
+     */
+    public boolean isInvincible() {
+        return invincibleTimer > 0;
     }
     
     /**

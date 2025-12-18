@@ -416,13 +416,17 @@ public class GameMap {
         if (player.isJumping()) {
             return false; // 跳跃中不会碰撞
         }
-        
+
+        // 无敌状态下不会被碰撞
+        if (player.isInvincible()) {
+            return false;
+        }
+
         for (Enemy enemy : enemies) {
             if (enemy.collidesWithPlayer()) {
                 // 检查护盾
                 if (player.consumeShield()) {
                     System.out.println("护盾抵挡了攻击！");
-                    // 将敌人推开一点
                     continue;
                 }
                 return true; // 游戏结束
