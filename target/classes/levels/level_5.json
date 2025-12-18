@@ -1,0 +1,49 @@
+{
+  "name": "单向迷途",
+  "chapter": 1,
+  "spawnX": 1,
+  "spawnY": 1,
+  "mapLayout": [
+    "####################",
+    "#..................#",
+    "#.####.OOOO.####.#.#",
+    "#.#..........#...#.#",
+    "#.##.####.####.##.##",
+    "#......#..#........#",
+    "#.OOOO.#..#.OOOO.#.#",
+    "#......#..#........#",
+    "#.##.####.####.##.##",
+    "#.#..........#...#.#",
+    "#.####.OOOO.####.#.#",
+    "#..................#",
+    "#.##.########.##...#",
+    "#..................#",
+    "####################"
+  ],
+  "enemies": [
+    {"type": "chaser", "x": 18, "y": 13},
+    {"type": "wanderer", "x": 5, "y": 7},
+    {"type": "wanderer", "x": 15, "y": 7}
+  ],
+  "items": [],
+  "portals": [],
+  "oneWays": [
+    {"x": 7, "y": 2, "direction": "right"},
+    {"x": 8, "y": 2, "direction": "right"},
+    {"x": 9, "y": 2, "direction": "right"},
+    {"x": 10, "y": 2, "direction": "right"},
+    {"x": 2, "y": 6, "direction": "down"},
+    {"x": 3, "y": 6, "direction": "down"},
+    {"x": 4, "y": 6, "direction": "down"},
+    {"x": 5, "y": 6, "direction": "down"},
+    {"x": 12, "y": 6, "direction": "up"},
+    {"x": 13, "y": 6, "direction": "up"},
+    {"x": 14, "y": 6, "direction": "up"},
+    {"x": 15, "y": 6, "direction": "up"},
+    {"x": 7, "y": 10, "direction": "left"},
+    {"x": 8, "y": 10, "direction": "left"},
+    {"x": 9, "y": 10, "direction": "left"},
+    {"x": 10, "y": 10, "direction": "left"}
+  ],
+  "patrols": []
+}
