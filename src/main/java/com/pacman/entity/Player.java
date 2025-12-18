@@ -120,6 +120,11 @@ public class Player extends Entity {
         // 尝试切换到预输入的方向（在移动之前检查）
         tryChangeDirection();
 
+        // DEBUG: 冰面状态
+        if (onIce) {
+            System.out.println("[ICE] onIce=" + onIce + ", iceDir=" + iceDirection + ", dir=" + direction + ", nextDir=" + nextDirection);
+        }
+
         // 处理移动
         if (direction != Direction.NONE || (onIce && iceDirection != Direction.NONE)) {
             Direction moveDir = onIce ? iceDirection : direction;
@@ -147,6 +152,7 @@ public class Player extends Entity {
                 alignToGrid();
                 if (onIce) {
                     // 在冰面上撞墙，停止滑行
+                    System.out.println("[ICE] 撞墙(预检测)! 重置iceDirection: " + iceDirection + " -> NONE");
                     iceDirection = Direction.NONE;
                 } else {
                     direction = Direction.NONE;
@@ -168,6 +174,7 @@ public class Player extends Entity {
                 } else if (onIce) {
                     // 在冰面上撞墙，停止滑行并允许改变方向
                     alignToGrid();
+                    System.out.println("[ICE] 撞墙(移动检测)! 重置iceDirection: " + iceDirection + " -> NONE");
                     iceDirection = Direction.NONE;
                     // 不重置onIce，等离开冰面时自动重置
                 } else {
@@ -224,11 +231,15 @@ public class Player extends Entity {
 
         // 在冰面上滑行时，只有撞墙停止后才能改变方向
         if (onIce && iceDirection != Direction.NONE) {
+            System.out.println("[ICE] tryChangeDirection: 还在滑行中，不能改变方向 (iceDir=" + iceDirection + ")");
             return;
         }
 
         // 检查是否接近格子中心
         double centerDist = Math.abs(gridX - Math.round(gridX)) + Math.abs(gridY - Math.round(gridY));
+        if (onIce) {
+            System.out.println("[ICE] tryChangeDirection: iceDir=NONE, nextDir=" + nextDirection + ", centerDist=" + centerDist);
+        }
         if (centerDist < 0.15) {
             // 检查新方向是否可行
             int testX = getTileX() + nextDirection.getDx();
@@ -236,10 +247,15 @@ public class Player extends Entity {
 
             boolean canWallPass = hasEffect(ItemType.WALL_PASS);
             Direction fromDirection = nextDirection.getOpposite();
-            if (gameMap.canMoveTo(testX, testY, fromDirection, canWallPass)) {
+            boolean canMove = gameMap.canMoveTo(testX, testY, fromDirection, canWallPass);
+            if (onIce) {
+                System.out.println("[ICE] tryChangeDirection: 检查方向 " + nextDirection + " -> (" + testX + "," + testY + ") canMove=" + canMove);
+            }
+            if (canMove) {
                 direction = nextDirection;
                 // 如果在冰面上，也更新滑行方向，这样玩家会继续沿新方向滑行
                 if (onIce) {
+                    System.out.println("[ICE] tryChangeDirection: 成功! 设置iceDirection=" + nextDirection);
                     iceDirection = nextDirection;
                 }
                 nextDirection = Direction.NONE;
@@ -358,20 +374,30 @@ public class Player extends Entity {
      * @param onIce 是否在冰面上
      */
     public void setOnIce(boolean onIce) {
+        boolean wasOnIce = this.onIce;
         this.onIce = onIce;
         if (onIce && direction != Direction.NONE) {
             iceDirection = direction;
+            if (!wasOnIce) {
+                System.out.println("[ICE] 进入冰面! iceDirection=" + iceDirection);
+            }
         } else if (!onIce) {
+            if (wasOnIce) {
+                System.out.println("[ICE] 离开冰面!");
+            }
             iceDirection = Direction.NONE;
         }
     }
-    
+
     /**
      * 设置下一个移动方向（预输入）
      * @param direction 方向
      */
     public void setNextDirection(Direction direction) {
         this.nextDirection = direction;
+        if (onIce) {
+            System.out.println("[ICE] setNextDirection: " + direction + " (onIce=true, iceDir=" + iceDirection + ")");
+        }
         // 如果当前没有在移动且不在冰面上，直接设置当前方向
         if (this.direction == Direction.NONE && !onIce) {
             this.direction = direction;
