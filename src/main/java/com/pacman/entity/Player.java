@@ -376,15 +376,12 @@ public class Player extends Entity {
     public void setOnIce(boolean onIce) {
         boolean wasOnIce = this.onIce;
         this.onIce = onIce;
-        if (onIce && direction != Direction.NONE) {
+        // 只有刚进入冰面时才设置滑行方向，不是每帧都设置
+        if (onIce && !wasOnIce && direction != Direction.NONE) {
             iceDirection = direction;
-            if (!wasOnIce) {
-                System.out.println("[ICE] 进入冰面! iceDirection=" + iceDirection);
-            }
-        } else if (!onIce) {
-            if (wasOnIce) {
-                System.out.println("[ICE] 离开冰面!");
-            }
+            System.out.println("[ICE] 进入冰面! iceDirection=" + iceDirection);
+        } else if (!onIce && wasOnIce) {
+            System.out.println("[ICE] 离开冰面!");
             iceDirection = Direction.NONE;
         }
     }
