@@ -90,27 +90,50 @@ public abstract class Enemy extends Entity {
             }
             return;
         }
-        
-        // 更新移动计时器
-        moveTimer += deltaTime;
-        
-        // 决定移动方向
-        if (moveTimer >= moveInterval) {
-            moveTimer = 0;
-            decideDirection();
+
+        // 检查是否接近格子中心
+        double centerDist = Math.abs(gridX - Math.round(gridX)) + Math.abs(gridY - Math.round(gridY));
+
+        // 只有接近格子中心时才决定新方向
+        if (centerDist < 0.1) {
+            // 更新移动计时器
+            moveTimer += deltaTime;
+
+            // 决定移动方向
+            if (moveTimer >= moveInterval) {
+                moveTimer = 0;
+                alignToGrid(); // 确保对齐
+                decideDirection();
+            }
         }
-        
+
         // 执行移动
         if (direction != Direction.NONE) {
-            double newX = gridX + direction.getDx() * speed * deltaTime;
-            double newY = gridY + direction.getDy() * speed * deltaTime;
-            
-            if (gameMap != null && gameMap.canMoveTo(newX, newY, false)) {
+            // 计算目标格子
+            int targetTileX = getTileX() + direction.getDx();
+            int targetTileY = getTileY() + direction.getDy();
+
+            // 先检查目标格子是否可达
+            if (gameMap != null && gameMap.canMoveTo(targetTileX, targetTileY, false)) {
+                double newX = gridX + direction.getDx() * speed * deltaTime;
+                double newY = gridY + direction.getDy() * speed * deltaTime;
+
+                // 计算移动后是否超过了目标格子中心
+                double targetX = Math.round(gridX) + direction.getDx();
+                double targetY = Math.round(gridY) + direction.getDy();
+
+                // 防止越过目标格子
+                if (direction.getDx() > 0 && newX > targetX) newX = targetX;
+                if (direction.getDx() < 0 && newX < targetX) newX = targetX;
+                if (direction.getDy() > 0 && newY > targetY) newY = targetY;
+                if (direction.getDy() < 0 && newY < targetY) newY = targetY;
+
                 gridX = newX;
                 gridY = newY;
             } else {
-                // 撞墙后重新决定方向
+                // 前方不可通行，停止并重新决定方向
                 alignToGrid();
+                direction = Direction.NONE;
                 decideDirection();
             }
         }

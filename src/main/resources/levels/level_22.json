@@ -1,0 +1,54 @@
+{
+  "name": "单行迷宫",
+  "chapter": 4,
+  "spawnX": 1,
+  "spawnY": 1,
+  "mapLayout": [
+    "####################",
+    "#.OOO..........OOO.#",
+    "#.###.##.##.##.###.#",
+    "#......#....#......#",
+    "#.##.#.#.##.#.#.##.#",
+    "#.OO.#......#.OO...#",
+    "#.##.#.####.#.##.#.#",
+    "#..................#",
+    "#.#.##.####.#.##.#.#",
+    "#...OO.#......#.OO.#",
+    "#.##.#.#.##.#.#.##.#",
+    "#......#....#......#",
+    "#.###.##.##.##.###.#",
+    "#.OOO..........OOO.#",
+    "####################"
+  ],
+  "enemies": [
+    {"type": "phantom", "x": 10, "y": 3},
+    {"type": "phantom", "x": 10, "y": 11},
+    {"type": "patroller", "x": 5, "y": 7},
+    {"type": "patroller", "x": 14, "y": 7}
+  ],
+  "items": [
+    {"type": "shield", "x": 10, "y": 7},
+    {"type": "magnet", "x": 1, "y": 13},
+    {"type": "wallpass", "x": 18, "y": 1}
+  ],
+  "portals": [],
+  "oneWays": [
+    {"x": 2, "y": 1, "direction": "right"},
+    {"x": 3, "y": 1, "direction": "right"},
+    {"x": 4, "y": 1, "direction": "right"},
+    {"x": 15, "y": 1, "direction": "left"},
+    {"x": 16, "y": 1, "direction": "left"},
+    {"x": 17, "y": 1, "direction": "left"},
+    {"x": 2, "y": 5, "direction": "down"},
+    {"x": 15, "y": 5, "direction": "down"},
+    {"x": 3, "y": 9, "direction": "up"},
+    {"x": 15, "y": 9, "direction": "up"},
+    {"x": 2, "y": 13, "direction": "right"},
+    {"x": 3, "y": 13, "direction": "right"},
+    {"x": 4, "y": 13, "direction": "right"},
+    {"x": 15, "y": 13, "direction": "left"},
+    {"x": 16, "y": 13, "direction": "left"},
+    {"x": 17, "y": 13, "direction": "left"}
+  ],
+  "patrols": []
+}

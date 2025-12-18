@@ -63,7 +63,7 @@ public final class Constants {
     public static final double HUNTER_BASE_SPEED = 2.0;
     
     /** 猎手加速速度（看到玩家时） */
-    public static final double HUNTER_RUSH_SPEED = 6.0;
+    public static final double HUNTER_RUSH_SPEED = 7.5;
     
     /** 巡逻者速度 */
     public static final double PATROLLER_SPEED = 3.0;
@@ -104,10 +104,10 @@ public final class Constants {
     public static final int JUMP_PAD_DISTANCE = 2;
     
     /** 致盲效果持续时间（秒） */
-    public static final double BLIND_DURATION = 3.0;
-    
+    public static final double BLIND_DURATION = 2.0;
+
     /** 致盲效果可见范围（格子数） */
-    public static final int BLIND_VISIBLE_RANGE = 2;
+    public static final int BLIND_VISIBLE_RANGE = 3;
     
     // ==================== 颜色设置（临时用简单图形） ====================
     /** 玩家颜色 */

@@ -194,37 +194,96 @@ public class Patroller extends Enemy {
     
     /**
      * 根据地图自动生成巡逻路径
-     * 在设置地图后调用，会生成一个矩形巡逻路线
+     * 沿着可通行的路径探索，生成一条较长的巡逻路线
      */
     public void generateDefaultPath() {
         patrolPath.clear();
-        
-        // 以当前位置为中心，生成一个简单的方形巡逻路径
-        int centerX = (int) gridX;
-        int centerY = (int) gridY;
-        int range = 3; // 巡逻范围
-        
-        // 尝试生成一个方形路径
-        int[][] candidates = {
-                {centerX - range, centerY - range},
-                {centerX + range, centerY - range},
-                {centerX + range, centerY + range},
-                {centerX - range, centerY + range}
-        };
-        
-        for (int[] point : candidates) {
-            // 检查点是否在地图范围内且可通行
-            if (gameMap != null && 
-                point[0] >= 0 && point[0] < Constants.MAP_COLS &&
-                point[1] >= 0 && point[1] < Constants.MAP_ROWS &&
-                gameMap.canMoveTo(point[0], point[1], false)) {
-                patrolPath.add(point);
+
+        if (gameMap == null) {
+            patrolPath.add(new int[]{(int) gridX, (int) gridY});
+            return;
+        }
+
+        int startX = (int) gridX;
+        int startY = (int) gridY;
+
+        // 添加起点
+        patrolPath.add(new int[]{startX, startY});
+
+        // 使用探索算法生成路径：从起点开始，沿着可通行方向走
+        int currentX = startX;
+        int currentY = startY;
+        Direction lastDir = Direction.NONE;
+        int minPathLength = 12; // 最小路径长度，确保巡逻路径足够长
+
+        // 尝试生成足够长的路径
+        for (int step = 0; step < 30 && patrolPath.size() < minPathLength; step++) {
+            Direction bestDir = null;
+            int maxDistance = 0;
+
+            // 尝试每个方向，找到能走最远的方向
+            for (Direction dir : Direction.validDirections()) {
+                // 避免立即折返
+                if (dir == lastDir.getOpposite() && patrolPath.size() > 1) {
+                    continue;
+                }
+
+                // 沿这个方向探索能走多远
+                int distance = 0;
+                int testX = currentX;
+                int testY = currentY;
+
+                while (distance < 8) {
+                    testX += dir.getDx();
+                    testY += dir.getDy();
+
+                    if (testX < 1 || testX >= Constants.MAP_COLS - 1 ||
+                        testY < 1 || testY >= Constants.MAP_ROWS - 1 ||
+                        !gameMap.canMoveTo(testX, testY, false)) {
+                        break;
+                    }
+                    distance++;
+                }
+
+                if (distance > maxDistance) {
+                    maxDistance = distance;
+                    bestDir = dir;
+                }
+            }
+
+            // 如果找到了可以走的方向
+            if (bestDir != null && maxDistance >= 2) {
+                // 走到这个方向的一半或至少2格
+                int walkDistance = Math.max(2, maxDistance / 2);
+                currentX += bestDir.getDx() * walkDistance;
+                currentY += bestDir.getDy() * walkDistance;
+
+                // 确保不重复添加相同的点
+                int[] lastPoint = patrolPath.get(patrolPath.size() - 1);
+                if (lastPoint[0] != currentX || lastPoint[1] != currentY) {
+                    patrolPath.add(new int[]{currentX, currentY});
+                }
+
+                lastDir = bestDir;
+            } else {
+                // 无路可走，尝试换个方向
+                lastDir = Direction.NONE;
             }
         }
-        
-        // 如果没有有效路径点，至少添加当前位置
-        if (patrolPath.isEmpty()) {
-            patrolPath.add(new int[]{centerX, centerY});
+
+        // 如果路径太短，尝试在起点周围找一些点
+        if (patrolPath.size() < 3) {
+            // 在起点周围找可通行的点
+            int[][] directions = {{0, -3}, {3, 0}, {0, 3}, {-3, 0}};
+            for (int[] delta : directions) {
+                int px = startX + delta[0];
+                int py = startY + delta[1];
+                if (px >= 1 && px < Constants.MAP_COLS - 1 &&
+                    py >= 1 && py < Constants.MAP_ROWS - 1 &&
+                    gameMap.canMoveTo(px, py, false)) {
+                    patrolPath.add(new int[]{px, py});
+                }
+            }
         }
     }
     

@@ -65,7 +65,9 @@ public class GameMap {
     private void initEmptyMap() {
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                tiles[y][x] = new Tile(x, y, TileType.FLOOR);
+                Tile tile = new Tile(x, y, TileType.FLOOR);
+                tile.setGameMap(this);
+                tiles[y][x] = tile;
             }
         }
     }
@@ -78,10 +80,12 @@ public class GameMap {
      */
     public void setTile(int x, int y, TileType type) {
         if (isValidPosition(x, y)) {
-            tiles[y][x] = new Tile(x, y, type);
+            Tile tile = new Tile(x, y, type);
+            tile.setGameMap(this);
+            tiles[y][x] = tile;
         }
     }
-    
+
     /**
      * 设置格子类型和方向
      * @param x X坐标
@@ -93,6 +97,7 @@ public class GameMap {
         if (isValidPosition(x, y)) {
             Tile tile = new Tile(x, y, type);
             tile.setDirection(direction);
+            tile.setGameMap(this);
             tiles[y][x] = tile;
         }
     }
@@ -140,11 +145,13 @@ public class GameMap {
     
     /**
      * 在所有空地上添加豆子
+     * 只在FLOOR类型的格子上放置豆子，不在特殊地块（传送门、冰面、跳板等）上放置
      */
     public void addDotsOnAllFloors() {
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                if (tiles[y][x].isWalkable()) {
+                // 只在FLOOR类型的格子上放豆子，排除传送门、冰面、跳板等特殊地块
+                if (tiles[y][x].getType() == TileType.FLOOR) {
                     // 不在玩家出生点放豆子
                     if (x != spawnX || y != spawnY) {
                         addDot(x, y);
@@ -183,31 +190,56 @@ public class GameMap {
      * @return 添加的敌人对象
      */
     public Enemy addEnemy(int x, int y, String enemyType) {
+        // 验证生成位置是否有效，如果无效则寻找最近的有效位置
+        int spawnX = x;
+        int spawnY = y;
+        if (!isValidPosition(x, y) || !tiles[y][x].isWalkable()) {
+            // 寻找最近的有效位置
+            outerLoop:
+            for (int radius = 1; radius < Math.max(width, height); radius++) {
+                for (int dx = -radius; dx <= radius; dx++) {
+                    for (int dy = -radius; dy <= radius; dy++) {
+                        int newX = x + dx;
+                        int newY = y + dy;
+                        if (isValidPosition(newX, newY) && tiles[newY][newX].isWalkable()) {
+                            spawnX = newX;
+                            spawnY = newY;
+                            break outerLoop;
+                        }
+                    }
+                }
+            }
+        }
+
+        // 创建 final 变量供 lambda 使用
+        final int finalSpawnX = spawnX;
+        final int finalSpawnY = spawnY;
+
         Enemy enemy = switch (enemyType.toLowerCase()) {
-            case "chaser" -> new Chaser(x, y);
-            case "wanderer" -> new Wanderer(x, y);
-            case "hunter" -> new Hunter(x, y);
+            case "chaser" -> new Chaser(finalSpawnX, finalSpawnY);
+            case "wanderer" -> new Wanderer(finalSpawnX, finalSpawnY);
+            case "hunter" -> new Hunter(finalSpawnX, finalSpawnY);
             case "patroller" -> {
-                Patroller p = new Patroller(x, y);
+                Patroller p = new Patroller(finalSpawnX, finalSpawnY);
                 p.setGameMap(this);
                 p.generateDefaultPath();
                 yield p;
             }
             case "phantom" -> {
-                Phantom ph = new Phantom(x, y);
+                Phantom ph = new Phantom(finalSpawnX, finalSpawnY);
                 ph.setGameMap(this);
                 ph.generateDefaultPath();
                 yield ph;
             }
-            default -> new Wanderer(x, y);
+            default -> new Wanderer(finalSpawnX, finalSpawnY);
         };
-        
+
         enemy.setGameMap(this);
         enemies.add(enemy);
-        
+
         // 移除该位置的豆子
-        dots.removeIf(dot -> dot.getTileX() == x && dot.getTileY() == y);
-        
+        dots.removeIf(dot -> dot.getTileX() == finalSpawnX && dot.getTileY() == finalSpawnY);
+
         return enemy;
     }
     
@@ -241,18 +273,49 @@ public class GameMap {
     public boolean canMoveTo(double x, double y, boolean canWallPass) {
         int tileX = (int) Math.round(x);
         int tileY = (int) Math.round(y);
-        
+
         if (!isValidPosition(tileX, tileY)) {
             return false;
         }
-        
+
         Tile tile = tiles[tileY][tileX];
-        
+
         // 穿墙效果
         if (canWallPass) {
             return true;
         }
-        
+
+        return tile.isWalkable();
+    }
+
+    /**
+     * 检查是否可以从指定方向移动到目标位置
+     * @param x X坐标（可以是小数）
+     * @param y Y坐标（可以是小数）
+     * @param fromDirection 移动的来源方向（玩家是从哪个方向过来的）
+     * @param canWallPass 是否可以穿墙
+     * @return 是否可以移动
+     */
+    public boolean canMoveTo(double x, double y, Direction fromDirection, boolean canWallPass) {
+        int tileX = (int) Math.round(x);
+        int tileY = (int) Math.round(y);
+
+        if (!isValidPosition(tileX, tileY)) {
+            return false;
+        }
+
+        Tile tile = tiles[tileY][tileX];
+
+        // 穿墙效果
+        if (canWallPass) {
+            return true;
+        }
+
+        // 检查单向通道
+        if (tile.getType() == TileType.ONE_WAY) {
+            return tile.canEnterFrom(fromDirection);
+        }
+
         return tile.isWalkable();
     }
     
@@ -353,13 +416,16 @@ public class GameMap {
         if (player.isJumping()) {
             return false; // 跳跃中不会碰撞
         }
-        
+
+        // 无敌状态下不会被碰撞
+        if (player.isInvincible()) {
+            return false;
+        }
+
         for (Enemy enemy : enemies) {
             if (enemy.collidesWithPlayer()) {
                 // 检查护盾
                 if (player.consumeShield()) {
-                    System.out.println("护盾抵挡了攻击！");
-                    // 将敌人推开一点
                     continue;
                 }
                 return true; // 游戏结束

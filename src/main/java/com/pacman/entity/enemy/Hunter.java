@@ -26,7 +26,7 @@ public class Hunter extends Enemy {
     private static final double MAX_RUSH_DURATION = 2.0;
     
     /** 追击冷却时间 */
-    private static final double RUSH_COOLDOWN_TIME = 3.0;
+    private static final double RUSH_COOLDOWN_TIME = 1.5;
     
     /**
      * 构造函数
@@ -56,7 +56,9 @@ public class Hunter extends Enemy {
         // 更新追击状态
         if (isRushing) {
             rushDuration += deltaTime;
-            if (rushDuration >= MAX_RUSH_DURATION || !canSeePlayer()) {
+            // 只有超时才停止追击，不再因为看不到玩家就停止
+            // 这样猎手一旦发现玩家就会全力追击直到超时
+            if (rushDuration >= MAX_RUSH_DURATION) {
                 stopRush();
             }
         }
@@ -83,6 +85,78 @@ public class Hunter extends Enemy {
         speed = Constants.HUNTER_BASE_SPEED;
     }
     
+    /**
+     * 检查玩家是否在猎手的视线内（考虑朝向）
+     * 只有玩家在猎手面前（朝向方向）时才算在视线内
+     */
+    @Override
+    protected boolean canSeePlayer() {
+        if (player == null || gameMap == null) {
+            return false;
+        }
+
+        int playerTileX = player.getTileX();
+        int playerTileY = player.getTileY();
+        int myTileX = getTileX();
+        int myTileY = getTileY();
+
+        // 必须在同一行或同一列
+        if (myTileX != playerTileX && myTileY != playerTileY) {
+            return false;
+        }
+
+        // 检查玩家是否在猎手的朝向方向上
+        // 如果猎手没有方向（静止），则检查所有方向
+        if (direction != Direction.NONE) {
+            if (myTileX == playerTileX) {
+                // 同一列，检查Y方向
+                if (direction == Direction.UP && playerTileY >= myTileY) {
+                    return false; // 猎手朝上，但玩家在下方或同位置
+                }
+                if (direction == Direction.DOWN && playerTileY <= myTileY) {
+                    return false; // 猎手朝下，但玩家在上方或同位置
+                }
+                // 如果猎手朝左或右，但玩家在同一列的上下方，不算视线内
+                if (direction == Direction.LEFT || direction == Direction.RIGHT) {
+                    return false;
+                }
+            } else {
+                // 同一行，检查X方向
+                if (direction == Direction.LEFT && playerTileX >= myTileX) {
+                    return false; // 猎手朝左，但玩家在右边或同位置
+                }
+                if (direction == Direction.RIGHT && playerTileX <= myTileX) {
+                    return false; // 猎手朝右，但玩家在左边或同位置
+                }
+                // 如果猎手朝上或下，但玩家在同一行的左右方，不算视线内
+                if (direction == Direction.UP || direction == Direction.DOWN) {
+                    return false;
+                }
+            }
+        }
+
+        // 检查中间是否有墙
+        if (myTileX == playerTileX) {
+            int minY = Math.min(myTileY, playerTileY);
+            int maxY = Math.max(myTileY, playerTileY);
+            for (int y = minY + 1; y < maxY; y++) {
+                if (!gameMap.canMoveTo(myTileX, y, false)) {
+                    return false;
+                }
+            }
+        } else {
+            int minX = Math.min(myTileX, playerTileX);
+            int maxX = Math.max(myTileX, playerTileX);
+            for (int x = minX + 1; x < maxX; x++) {
+                if (!gameMap.canMoveTo(x, myTileY, false)) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
     @Override
     protected void decideDirection() {
         List<Direction> validDirs = getValidDirectionsNoReverse();

@@ -60,7 +60,14 @@ public class Phantom extends Enemy {
     public void update(double deltaTime) {
         // 更新隐身状态
         updateVisibility(deltaTime);
-        
+
+        // 隐身时速度加快
+        if (invisible) {
+            speed = 3.0; // 隐身时速度适中
+        } else {
+            speed = Constants.PHANTOM_SPEED;
+        }
+
         // 调用父类更新
         super.update(deltaTime);
     }
@@ -71,7 +78,7 @@ public class Phantom extends Enemy {
      */
     private void updateVisibility(double deltaTime) {
         visibilityTimer += deltaTime;
-        
+
         if (invisible) {
             // 隐身状态
             if (visibilityTimer >= invisibleDuration) {
@@ -79,13 +86,13 @@ public class Phantom extends Enemy {
                 invisible = false;
                 visibilityTimer = 0;
             }
-            // 更新透明度（渐变效果）
+            // 更新透明度（完全隐身）
             if (visibilityTimer < 0.3) {
-                opacity = 1.0 - visibilityTimer / 0.3 * 0.8; // 淡出
+                opacity = 1.0 - visibilityTimer / 0.3; // 快速淡出
             } else if (visibilityTimer > invisibleDuration - 0.3) {
-                opacity = 0.2 + (visibilityTimer - (invisibleDuration - 0.3)) / 0.3 * 0.8; // 淡入
+                opacity = (visibilityTimer - (invisibleDuration - 0.3)) / 0.3; // 淡入
             } else {
-                opacity = 0.2; // 完全隐身时仍有微弱可见
+                opacity = 0.0; // 完全隐身
             }
         } else {
             // 显形状态
@@ -142,6 +149,36 @@ public class Phantom extends Enemy {
     
     @Override
     protected void decideDirection() {
+        // 隐身时追逐玩家，更具威胁性
+        if (invisible && player != null) {
+            List<Direction> validDirs = getValidDirectionsNoReverse();
+            if (validDirs.isEmpty()) {
+                validDirs = getValidDirections();
+            }
+            if (validDirs.isEmpty()) {
+                direction = Direction.NONE;
+                return;
+            }
+
+            // 追逐玩家
+            double dx = player.getGridX() - gridX;
+            double dy = player.getGridY() - gridY;
+
+            Direction bestDir = validDirs.get(0);
+            double bestScore = Double.MIN_VALUE;
+
+            for (Direction dir : validDirs) {
+                double score = dir.getDx() * dx + dir.getDy() * dy;
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestDir = dir;
+                }
+            }
+
+            direction = bestDir;
+            return;
+        }
+
         if (patrolPath.isEmpty()) {
             // 没有路径时随机移动
             List<Direction> validDirs = getValidDirectionsNoReverse();
@@ -156,16 +193,16 @@ public class Phantom extends Enemy {
             }
             return;
         }
-        
+
         // 获取当前目标点
         int[] targetPoint = patrolPath.get(currentPathIndex);
-        
+
         // 检查是否到达目标点
         double distToTarget = Math.sqrt(
                 Math.pow(gridX - targetPoint[0], 2) +
                 Math.pow(gridY - targetPoint[1], 2)
         );
-        
+
         if (distToTarget < 0.2) {
             // 更新路径索引
             if (forwardPatrol) {
@@ -185,20 +222,20 @@ public class Phantom extends Enemy {
             }
             targetPoint = patrolPath.get(currentPathIndex);
         }
-        
+
         // 朝目标移动
         double dx = targetPoint[0] - gridX;
         double dy = targetPoint[1] - gridY;
-        
+
         List<Direction> validDirs = getValidDirections();
         if (validDirs.isEmpty()) {
             direction = Direction.NONE;
             return;
         }
-        
+
         Direction bestDir = validDirs.get(0);
         double bestScore = Double.MIN_VALUE;
-        
+
         for (Direction dir : validDirs) {
             double score = dir.getDx() * dx + dir.getDy() * dy;
             if (score > bestScore) {
@@ -206,7 +243,7 @@ public class Phantom extends Enemy {
                 bestDir = dir;
             }
         }
-        
+
         direction = bestDir;
     }
     
@@ -293,33 +330,86 @@ public class Phantom extends Enemy {
     
     /**
      * 生成默认巡逻路径
+     * 沿着可通行的路径探索，生成一条较长的巡逻路线
      */
     public void generateDefaultPath() {
         patrolPath.clear();
-        
-        int centerX = (int) gridX;
-        int centerY = (int) gridY;
-        int range = 4;
-        
-        // 生成一个较大的方形路径
-        int[][] candidates = {
-                {centerX, centerY - range},
-                {centerX + range, centerY},
-                {centerX, centerY + range},
-                {centerX - range, centerY}
-        };
-        
-        for (int[] point : candidates) {
-            if (gameMap != null &&
-                point[0] >= 0 && point[0] < Constants.MAP_COLS &&
-                point[1] >= 0 && point[1] < Constants.MAP_ROWS &&
-                gameMap.canMoveTo(point[0], point[1], false)) {
-                patrolPath.add(point);
+
+        if (gameMap == null) {
+            patrolPath.add(new int[]{(int) gridX, (int) gridY});
+            return;
+        }
+
+        int startX = (int) gridX;
+        int startY = (int) gridY;
+
+        // 添加起点
+        patrolPath.add(new int[]{startX, startY});
+
+        // 使用探索算法生成路径
+        int currentX = startX;
+        int currentY = startY;
+        Direction lastDir = Direction.NONE;
+        int minPathLength = 12; // 最小路径长度，确保巡逻路径足够长
+
+        for (int step = 0; step < 30 && patrolPath.size() < minPathLength; step++) {
+            Direction bestDir = null;
+            int maxDistance = 0;
+
+            for (Direction dir : Direction.validDirections()) {
+                if (dir == lastDir.getOpposite() && patrolPath.size() > 1) {
+                    continue;
+                }
+
+                int distance = 0;
+                int testX = currentX;
+                int testY = currentY;
+
+                while (distance < 8) {
+                    testX += dir.getDx();
+                    testY += dir.getDy();
+
+                    if (testX < 1 || testX >= Constants.MAP_COLS - 1 ||
+                        testY < 1 || testY >= Constants.MAP_ROWS - 1 ||
+                        !gameMap.canMoveTo(testX, testY, false)) {
+                        break;
+                    }
+                    distance++;
+                }
+
+                if (distance > maxDistance) {
+                    maxDistance = distance;
+                    bestDir = dir;
+                }
+            }
+
+            if (bestDir != null && maxDistance >= 2) {
+                int walkDistance = Math.max(2, maxDistance / 2);
+                currentX += bestDir.getDx() * walkDistance;
+                currentY += bestDir.getDy() * walkDistance;
+
+                int[] lastPoint = patrolPath.get(patrolPath.size() - 1);
+                if (lastPoint[0] != currentX || lastPoint[1] != currentY) {
+                    patrolPath.add(new int[]{currentX, currentY});
+                }
+
+                lastDir = bestDir;
+            } else {
+                lastDir = Direction.NONE;
             }
         }
-        
-        if (patrolPath.isEmpty()) {
-            patrolPath.add(new int[]{centerX, centerY});
+
+        if (patrolPath.size() < 3) {
+            int[][] directions = {{0, -4}, {4, 0}, {0, 4}, {-4, 0}};
+            for (int[] delta : directions) {
+                int px = startX + delta[0];
+                int py = startY + delta[1];
+                if (px >= 1 && px < Constants.MAP_COLS - 1 &&
+                    py >= 1 && py < Constants.MAP_ROWS - 1 &&
+                    gameMap.canMoveTo(px, py, false)) {
+                    patrolPath.add(new int[]{px, py});
+                }
+            }
         }
     }
     

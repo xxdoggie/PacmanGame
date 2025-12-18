@@ -1,0 +1,61 @@
+{
+  "name": "终极试炼",
+  "chapter": 5,
+  "spawnX": 10,
+  "spawnY": 7,
+  "mapLayout": [
+    "####################",
+    "#P.B.J.IIII.J.B.P.J#",
+    "#.##.#.IIII.#.##.#.#",
+    "#-...#.+..+.#...-..#",
+    "#O##.#.####.#.##O#.#",
+    "#..+....P.P....+...#",
+    "#.#.##.#OO#.##.#.#.#",
+    "#B..J......J....J.B#",
+    "#.#.##.#OO#.##.#.#.#",
+    "#..+....P.P....+...#",
+    "#O##.#.####.#.##O#.#",
+    "#-...#.+..+.#...-..#",
+    "#.##.#.IIII.#.##.#.#",
+    "#P.B.J.IIII.J.B.P.J#",
+    "####################"
+  ],
+  "enemies": [
+    {"type": "chaser", "x": 1, "y": 1},
+    {"type": "chaser", "x": 18, "y": 13},
+    {"type": "wanderer", "x": 1, "y": 13},
+    {"type": "wanderer", "x": 18, "y": 1},
+    {"type": "hunter", "x": 5, "y": 7},
+    {"type": "hunter", "x": 14, "y": 7},
+    {"type": "phantom", "x": 10, "y": 3},
+    {"type": "phantom", "x": 10, "y": 11},
+    {"type": "patroller", "x": 3, "y": 5},
+    {"type": "patroller", "x": 16, "y": 9}
+  ],
+  "items": [
+    {"type": "shield", "x": 10, "y": 7},
+    {"type": "shield", "x": 1, "y": 7},
+    {"type": "shield", "x": 18, "y": 7},
+    {"type": "magnet", "x": 5, "y": 3},
+    {"type": "magnet", "x": 14, "y": 11},
+    {"type": "wallpass", "x": 10, "y": 1},
+    {"type": "wallpass", "x": 10, "y": 13}
+  ],
+  "portals": [
+    {"x1": 1, "y1": 1, "x2": 18, "y2": 13},
+    {"x1": 18, "y1": 1, "x2": 1, "y2": 13},
+    {"x1": 8, "y1": 5, "x2": 11, "y2": 9},
+    {"x1": 11, "y1": 5, "x2": 8, "y2": 9}
+  ],
+  "oneWays": [
+    {"x": 1, "y": 4, "direction": "down"},
+    {"x": 1, "y": 10, "direction": "up"},
+    {"x": 18, "y": 4, "direction": "down"},
+    {"x": 18, "y": 10, "direction": "up"},
+    {"x": 8, "y": 6, "direction": "down"},
+    {"x": 9, "y": 6, "direction": "down"},
+    {"x": 8, "y": 8, "direction": "up"},
+    {"x": 9, "y": 8, "direction": "up"}
+  ],
+  "patrols": []
+}

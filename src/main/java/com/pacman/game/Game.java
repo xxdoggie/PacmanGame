@@ -156,23 +156,36 @@ public class Game {
     }
     
     private void setupKeyboardInput() {
+        // 禁用焦点遍历，防止方向键被用于UI导航
+        mainLayout.setFocusTraversable(false);
+        gameCanvas.setFocusTraversable(false);
+
         scene.setOnKeyPressed(event -> {
             KeyCode code = event.getCode();
-            
+
+            // 消费方向键事件，防止被用于焦点遍历
+            if (code == KeyCode.UP || code == KeyCode.DOWN ||
+                code == KeyCode.LEFT || code == KeyCode.RIGHT) {
+                event.consume();
+            }
+
             if (code == KeyCode.ESCAPE || code == KeyCode.P) {
                 togglePause();
                 return;
             }
-            
+
             if (state == GameState.PLAYING || state == GameState.COUNTDOWN) {
-                Direction dir = switch (code) {
-                    case W, UP -> Direction.UP;
-                    case S, DOWN -> Direction.DOWN;
-                    case A, LEFT -> Direction.LEFT;
-                    case D, RIGHT -> Direction.RIGHT;
-                    default -> null;
-                };
-                
+                Direction dir = null;
+                if (code == KeyCode.W || code == KeyCode.UP) {
+                    dir = Direction.UP;
+                } else if (code == KeyCode.S || code == KeyCode.DOWN) {
+                    dir = Direction.DOWN;
+                } else if (code == KeyCode.A || code == KeyCode.LEFT) {
+                    dir = Direction.LEFT;
+                } else if (code == KeyCode.D || code == KeyCode.RIGHT) {
+                    dir = Direction.RIGHT;
+                }
+
                 if (dir != null) {
                     player.setNextDirection(dir);
                 }

@@ -49,7 +49,16 @@ public class Player extends Entity {
     
     /** 冰面滑行时的惯性方向 */
     private Direction iceDirection;
-    
+
+    /** 最后的朝向（用于direction为NONE时的渲染） */
+    private Direction lastFacingDirection;
+
+    /** 传送冷却时间（防止传送门无限循环） */
+    private double portalCooldown;
+
+    /** 无敌时间（护盾消耗后的短暂无敌） */
+    private double invincibleTimer;
+
     /** 游戏地图引用 */
     private GameMap gameMap;
     
@@ -71,6 +80,9 @@ public class Player extends Entity {
         this.speedModifier = 1.0;
         this.onIce = false;
         this.iceDirection = Direction.NONE;
+        this.lastFacingDirection = Direction.RIGHT;
+        this.portalCooldown = 0;
+        this.invincibleTimer = 0;
     }
     
     /**
@@ -85,7 +97,17 @@ public class Player extends Entity {
     public void update(double deltaTime) {
         // 更新道具效果计时器
         updateEffects(deltaTime);
-        
+
+        // 更新传送冷却
+        if (portalCooldown > 0) {
+            portalCooldown -= deltaTime;
+        }
+
+        // 更新无敌时间
+        if (invincibleTimer > 0) {
+            invincibleTimer -= deltaTime;
+        }
+
         // 更新致盲效果
         if (isBlinded) {
             blindTimer -= deltaTime;
@@ -104,30 +126,69 @@ public class Player extends Entity {
         // 计算实际速度
         double actualSpeed = speed * speedModifier;
         
+        // 尝试切换到预输入的方向（在移动之前检查）
+        tryChangeDirection();
+
         // 处理移动
         if (direction != Direction.NONE || (onIce && iceDirection != Direction.NONE)) {
             Direction moveDir = onIce ? iceDirection : direction;
-            
-            double newX = gridX + moveDir.getDx() * actualSpeed * deltaTime;
-            double newY = gridY + moveDir.getDy() * actualSpeed * deltaTime;
-            
-            // 检查是否可以移动（考虑穿墙效果）
+
+            // 更新最后朝向
+            lastFacingDirection = moveDir;
+
+            // 先检查前方是否有墙（基于当前位置的整数格子坐标）
             boolean canWallPass = hasEffect(ItemType.WALL_PASS);
-            
-            if (gameMap != null && gameMap.canMoveTo(newX, newY, canWallPass)) {
-                gridX = newX;
-                gridY = newY;
-                
-                // 处理地图边界传送
-                handleMapBoundary();
-            } else if (!onIce) {
-                // 撞墙后对齐到格子中心
+            int nextTileX = getTileX() + moveDir.getDx();
+            int nextTileY = getTileY() + moveDir.getDy();
+
+            // 检查是否接近格子边缘且前方是墙
+            double distToNextTileX = (moveDir.getDx() != 0) ?
+                    (moveDir.getDx() > 0 ? Math.ceil(gridX) - gridX : gridX - Math.floor(gridX)) : 1.0;
+            double distToNextTileY = (moveDir.getDy() != 0) ?
+                    (moveDir.getDy() > 0 ? Math.ceil(gridY) - gridY : gridY - Math.floor(gridY)) : 1.0;
+            double distToEdge = Math.min(distToNextTileX, distToNextTileY);
+
+            // 计算来源方向（玩家移动方向的反方向）
+            Direction fromDirection = moveDir.getOpposite();
+
+            // 如果接近边缘且前方是墙或单向通道阻挡，停止移动
+            if (distToEdge < 0.1 && gameMap != null && !gameMap.canMoveTo(nextTileX, nextTileY, fromDirection, canWallPass)) {
                 alignToGrid();
+                if (onIce) {
+                    // 在冰面上撞墙，停止滑行
+                    iceDirection = Direction.NONE;
+                } else {
+                    direction = Direction.NONE;
+                }
+                // 清除同方向的预输入，避免继续撞墙
+                if (nextDirection == moveDir) {
+                    nextDirection = Direction.NONE;
+                }
+            } else {
+                double newX = gridX + moveDir.getDx() * actualSpeed * deltaTime;
+                double newY = gridY + moveDir.getDy() * actualSpeed * deltaTime;
+
+                if (gameMap != null && gameMap.canMoveTo(newX, newY, fromDirection, canWallPass)) {
+                    gridX = newX;
+                    gridY = newY;
+
+                    // 处理地图边界传送
+                    handleMapBoundary();
+                } else if (onIce) {
+                    // 在冰面上撞墙，停止滑行并允许改变方向
+                    alignToGrid();
+                    iceDirection = Direction.NONE;
+                } else {
+                    // 撞墙后对齐到格子中心并停止移动
+                    alignToGrid();
+                    direction = Direction.NONE;
+                    // 清除同方向的预输入
+                    if (nextDirection == moveDir) {
+                        nextDirection = Direction.NONE;
+                    }
+                }
             }
         }
-        
-        // 尝试切换到预输入的方向
-        tryChangeDirection();
         
         // 重置速度修正
         speedModifier = 1.0;
@@ -168,24 +229,29 @@ public class Player extends Entity {
         if (nextDirection == Direction.NONE || gameMap == null) {
             return;
         }
-        
+
+        // 在冰面上滑行时，只有撞墙停止后才能改变方向
+        if (onIce && iceDirection != Direction.NONE) {
+            return;
+        }
+
         // 检查是否接近格子中心
         double centerDist = Math.abs(gridX - Math.round(gridX)) + Math.abs(gridY - Math.round(gridY));
         if (centerDist < 0.15) {
             // 检查新方向是否可行
             int testX = getTileX() + nextDirection.getDx();
             int testY = getTileY() + nextDirection.getDy();
-            
+
             boolean canWallPass = hasEffect(ItemType.WALL_PASS);
-            if (gameMap.canMoveTo(testX, testY, canWallPass)) {
+            Direction fromDirection = nextDirection.getOpposite();
+            if (gameMap.canMoveTo(testX, testY, fromDirection, canWallPass)) {
                 direction = nextDirection;
+                // 如果在冰面上，也更新滑行方向，这样玩家会继续沿新方向滑行
+                if (onIce) {
+                    iceDirection = nextDirection;
+                }
                 nextDirection = Direction.NONE;
                 alignToGrid();
-                
-                // 如果在冰面上改变方向，更新惯性方向
-                if (onIce) {
-                    iceDirection = direction;
-                }
             }
         }
     }
@@ -231,14 +297,50 @@ public class Player extends Entity {
     private void onEffectEnd(ItemType type) {
         switch (type) {
             case WALL_PASS -> {
-                // 穿墙结束，如果在墙里面需要处理
-                System.out.println("穿墙效果结束");
+                // 穿墙结束，如果在墙里面需要传送到最近的安全位置
+                if (gameMap != null) {
+                    int tileX = getTileX();
+                    int tileY = getTileY();
+                    if (!gameMap.canMoveTo(tileX, tileY, false)) {
+                        // 玩家在墙内，寻找最近的安全位置
+                        int[] safePos = findNearestSafePosition(tileX, tileY);
+                        if (safePos != null) {
+                            gridX = safePos[0];
+                            gridY = safePos[1];
+                        }
+                    }
+                }
             }
             case MAGNET -> {
-                System.out.println("磁铁效果结束");
+                // 磁铁效果结束
             }
             default -> {}
         }
+    }
+
+    /**
+     * 寻找最近的安全位置（不在墙内）
+     * @param startX 起始X坐标
+     * @param startY 起始Y坐标
+     * @return 安全位置坐标 [x, y]，如果找不到返回null
+     */
+    private int[] findNearestSafePosition(int startX, int startY) {
+        // 从近到远搜索安全位置
+        for (int radius = 1; radius <= 5; radius++) {
+            for (int dx = -radius; dx <= radius; dx++) {
+                for (int dy = -radius; dy <= radius; dy++) {
+                    if (Math.abs(dx) != radius && Math.abs(dy) != radius) {
+                        continue; // 只检查当前半径的外圈
+                    }
+                    int x = startX + dx;
+                    int y = startY + dy;
+                    if (gameMap.canMoveTo(x, y, false)) {
+                        return new int[]{x, y};
+                    }
+                }
+            }
+        }
+        return null;
     }
     
     /**
@@ -273,9 +375,19 @@ public class Player extends Entity {
     public boolean consumeShield() {
         if (hasShield) {
             hasShield = false;
+            // 护盾消耗后获得短暂无敌时间，防止连续碰撞
+            invincibleTimer = 1.0;
             return true;
         }
         return false;
+    }
+
+    /**
+     * 检查是否处于无敌状态
+     * @return 是否无敌
+     */
+    public boolean isInvincible() {
+        return invincibleTimer > 0;
     }
     
     /**
@@ -300,22 +412,24 @@ public class Player extends Entity {
      * @param onIce 是否在冰面上
      */
     public void setOnIce(boolean onIce) {
+        boolean wasOnIce = this.onIce;
         this.onIce = onIce;
-        if (onIce && direction != Direction.NONE) {
+        // 只有刚进入冰面时才设置滑行方向，不是每帧都设置
+        if (onIce && !wasOnIce && direction != Direction.NONE) {
             iceDirection = direction;
-        } else if (!onIce) {
+        } else if (!onIce && wasOnIce) {
             iceDirection = Direction.NONE;
         }
     }
-    
+
     /**
      * 设置下一个移动方向（预输入）
      * @param direction 方向
      */
     public void setNextDirection(Direction direction) {
         this.nextDirection = direction;
-        // 如果当前没有在移动，直接设置当前方向
-        if (this.direction == Direction.NONE) {
+        // 如果当前没有在移动且不在冰面上，直接设置当前方向
+        if (this.direction == Direction.NONE && !onIce) {
             this.direction = direction;
         }
     }
@@ -361,9 +475,10 @@ public class Player extends Entity {
                 Constants.PLAYER_RADIUS * 2
         );
         
-        // 绘制嘴巴（根据方向）
+        // 绘制嘴巴（根据方向，direction为NONE时使用lastFacingDirection）
         gc.setFill(Color.web(Constants.COLOR_FLOOR));
-        double mouthAngle = switch (direction) {
+        Direction facingDir = (direction != Direction.NONE) ? direction : lastFacingDirection;
+        double mouthAngle = switch (facingDir) {
             case RIGHT -> 0;
             case DOWN -> 90;
             case LEFT -> 180;
@@ -422,5 +537,13 @@ public class Player extends Entity {
     
     public Direction getNextDirection() {
         return nextDirection;
+    }
+
+    public boolean canTeleport() {
+        return portalCooldown <= 0;
+    }
+
+    public void setPortalCooldown(double cooldown) {
+        this.portalCooldown = cooldown;
     }
 }
