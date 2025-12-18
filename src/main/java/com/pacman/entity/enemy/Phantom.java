@@ -63,7 +63,7 @@ public class Phantom extends Enemy {
 
         // 隐身时速度加快
         if (invisible) {
-            speed = Constants.PHANTOM_SPEED * 2.0;
+            speed = 3.0; // 隐身时速度适中
         } else {
             speed = Constants.PHANTOM_SPEED;
         }

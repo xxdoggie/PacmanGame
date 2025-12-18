@@ -63,7 +63,7 @@ public final class Constants {
     public static final double HUNTER_BASE_SPEED = 2.0;
     
     /** 猎手加速速度（看到玩家时） */
-    public static final double HUNTER_RUSH_SPEED = 8.0;
+    public static final double HUNTER_RUSH_SPEED = 7.5;
     
     /** 巡逻者速度 */
     public static final double PATROLLER_SPEED = 3.0;
