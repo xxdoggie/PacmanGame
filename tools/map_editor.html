@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pac-Man 地图编辑器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #1a1a2e;
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: #ffff00;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        .main-layout {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .left-panel {
+            flex: 0 0 300px;
+        }
+        .center-panel {
+            flex: 1;
+            min-width: 500px;
+        }
+        .right-panel {
+            flex: 0 0 280px;
+        }
+        .panel {
+            background: #16213e;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .panel h3 {
+            color: #00ff88;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
+        }
+        .form-group {
+            margin-bottom: 10px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #aaa;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #333;
+            border-radius: 5px;
+            background: #0f0f23;
+            color: #fff;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+            transition: all 0.3s;
+        }
+        .btn-primary { background: #4CAF50; color: white; }
+        .btn-primary:hover { background: #45a049; }
+        .btn-secondary { background: #2196F3; color: white; }
+        .btn-secondary:hover { background: #1976D2; }
+        .btn-danger { background: #f44336; color: white; }
+        .btn-danger:hover { background: #d32f2f; }
+        .btn-warning { background: #ff9800; color: white; }
+        .btn-warning:hover { background: #f57c00; }
+
+        /* Tile Palette */
+        .tile-palette {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 5px;
+        }
+        .tile-btn {
+            width: 100%;
+            aspect-ratio: 1;
+            border: 2px solid #333;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .tile-btn:hover { transform: scale(1.05); }
+        .tile-btn.selected { border-color: #ffff00; box-shadow: 0 0 10px #ffff00; }
+        .tile-btn .icon { font-size: 20px; margin-bottom: 2px; }
+
+        /* Map Grid */
+        .map-container {
+            overflow: auto;
+            max-height: 600px;
+            background: #0f0f23;
+            border-radius: 10px;
+            padding: 10px;
+        }
+        .map-grid {
+            display: grid;
+            gap: 1px;
+            background: #333;
+            border: 2px solid #444;
+            width: fit-content;
+        }
+        .cell {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 12px;
+            position: relative;
+            transition: all 0.1s;
+        }
+        .cell:hover { filter: brightness(1.3); outline: 2px solid #fff; z-index: 10; }
+        .cell.wall { background: #1E90FF; }
+        .cell.floor { background: #1A1A2E; }
+        .cell.ice { background: #87CEEB; }
+        .cell.portal { background: #FF00FF; }
+        .cell.oneway { background: #00CED1; }
+        .cell.jumppad { background: #32CD32; }
+        .cell.speedup { background: #FFA500; }
+        .cell.slowdown { background: #8B4513; }
+        .cell.blind { background: #4B0082; }
+
+        .cell .dot {
+            width: 6px; height: 6px;
+            background: #fff;
+            border-radius: 50%;
+            position: absolute;
+        }
+        .cell .spawn {
+            color: #ffff00;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .cell .enemy {
+            font-size: 14px;
+            position: absolute;
+        }
+        .cell .item {
+            font-size: 14px;
+            position: absolute;
+        }
+        .cell .arrow {
+            font-size: 16px;
+            color: #fff;
+        }
+        .cell .portal-id {
+            font-size: 10px;
+            color: #fff;
+            font-weight: bold;
+        }
+
+        /* Enemy/Item Palette */
+        .entity-palette {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 5px;
+        }
+        .entity-btn {
+            padding: 8px;
+            border: 2px solid #333;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            font-size: 11px;
+            transition: all 0.2s;
+        }
+        .entity-btn:hover { transform: scale(1.05); }
+        .entity-btn.selected { border-color: #ffff00; box-shadow: 0 0 10px #ffff00; }
+        .entity-btn .icon { font-size: 18px; display: block; margin-bottom: 3px; }
+
+        /* Portal List */
+        .portal-list, .oneway-list {
+            max-height: 150px;
+            overflow-y: auto;
+            background: #0f0f23;
+            border-radius: 5px;
+            padding: 5px;
+        }
+        .portal-item, .oneway-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px;
+            border-bottom: 1px solid #333;
+            font-size: 12px;
+        }
+        .portal-item:last-child, .oneway-item:last-child { border-bottom: none; }
+        .delete-btn {
+            background: #f44336;
+            color: white;
+            border: none;
+            padding: 2px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        /* JSON Panel */
+        .json-textarea {
+            width: 100%;
+            height: 200px;
+            background: #0f0f23;
+            color: #0f0;
+            border: 1px solid #333;
+            border-radius: 5px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 11px;
+            resize: vertical;
+        }
+
+        /* Status bar */
+        .status-bar {
+            background: #16213e;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .coords { color: #aaa; }
+
+        /* Direction selector */
+        .direction-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 5px;
+            width: 100px;
+            margin: 10px auto;
+        }
+        .dir-btn {
+            padding: 8px;
+            border: 1px solid #333;
+            background: #0f0f23;
+            color: #fff;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+        .dir-btn:hover { background: #333; }
+        .dir-btn.selected { background: #4CAF50; }
+
+        .hidden { display: none !important; }
+
+        /* File input styling */
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Pac-Man 地图编辑器</h1>
+
+        <div class="main-layout">
+            <!-- Left Panel - Tools -->
+            <div class="left-panel">
+                <div class="panel">
+                    <h3>基本信息</h3>
+                    <div class="form-group">
+                        <label>关卡名称</label>
+                        <input type="text" id="levelName" value="新关卡">
+                    </div>
+                    <div class="form-group">
+                        <label>章节</label>
+                        <input type="number" id="chapter" value="1" min="1" max="5">
+                    </div>
+                    <div class="form-group">
+                        <label>地图大小</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="number" id="mapCols" value="20" min="10" max="30" style="width: 50%">
+                            <span style="line-height: 35px;">x</span>
+                            <input type="number" id="mapRows" value="15" min="10" max="20" style="width: 50%">
+                        </div>
+                    </div>
+                    <button class="btn btn-warning" onclick="resizeMap()">调整大小</button>
+                </div>
+
+                <div class="panel">
+                    <h3>地形工具</h3>
+                    <div class="tile-palette">
+                        <div class="tile-btn selected" data-tile="floor" style="background: #1A1A2E;">
+                            <span class="icon">·</span>
+                            <span>地板</span>
+                        </div>
+                        <div class="tile-btn" data-tile="wall" style="background: #1E90FF;">
+                            <span class="icon">#</span>
+                            <span>墙壁</span>
+                        </div>
+                        <div class="tile-btn" data-tile="ice" style="background: #87CEEB;">
+                            <span class="icon">I</span>
+                            <span>冰面</span>
+                        </div>
+                        <div class="tile-btn" data-tile="portal" style="background: #FF00FF;">
+                            <span class="icon">P</span>
+                            <span>传送门</span>
+                        </div>
+                        <div class="tile-btn" data-tile="oneway" style="background: #00CED1;">
+                            <span class="icon">O</span>
+                            <span>单向门</span>
+                        </div>
+                        <div class="tile-btn" data-tile="jumppad" style="background: #32CD32;">
+                            <span class="icon">J</span>
+                            <span>跳板</span>
+                        </div>
+                        <div class="tile-btn" data-tile="speedup" style="background: #FFA500;">
+                            <span class="icon">+</span>
+                            <span>加速</span>
+                        </div>
+                        <div class="tile-btn" data-tile="slowdown" style="background: #8B4513;">
+                            <span class="icon">-</span>
+                            <span>减速</span>
+                        </div>
+                        <div class="tile-btn" data-tile="blind" style="background: #4B0082;">
+                            <span class="icon">B</span>
+                            <span>致盲</span>
+                        </div>
+                        <div class="tile-btn" data-tile="spawn" style="background: #ffff00; color: #000;">
+                            <span class="icon">★</span>
+                            <span>出生点</span>
+                        </div>
+                        <div class="tile-btn" data-tile="eraser" style="background: #333;">
+                            <span class="icon">✕</span>
+                            <span>橡皮擦</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel" id="directionPanel" style="display: none;">
+                    <h3>单向门方向</h3>
+                    <div class="direction-selector">
+                        <div></div>
+                        <div class="dir-btn" data-dir="up">↑</div>
+                        <div></div>
+                        <div class="dir-btn" data-dir="left">←</div>
+                        <div></div>
+                        <div class="dir-btn selected" data-dir="right">→</div>
+                        <div></div>
+                        <div class="dir-btn" data-dir="down">↓</div>
+                        <div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center Panel - Map -->
+            <div class="center-panel">
+                <div class="panel">
+                    <h3>地图编辑 <span style="font-size: 12px; color: #aaa;">(左键绘制，右键删除实体)</span></h3>
+                    <div class="map-container">
+                        <div class="map-grid" id="mapGrid"></div>
+                    </div>
+                    <div class="status-bar">
+                        <span class="coords" id="coords">坐标: (0, 0)</span>
+                        <span id="tileInfo">当前: 地板</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel - Entities & Export -->
+            <div class="right-panel">
+                <div class="panel">
+                    <h3>敌人</h3>
+                    <div class="entity-palette">
+                        <div class="entity-btn" data-enemy="chaser" style="background: #FF0000;">
+                            <span class="icon">👻</span>
+                            追踪者
+                        </div>
+                        <div class="entity-btn" data-enemy="wanderer" style="background: #FFA07A;">
+                            <span class="icon">👻</span>
+                            游荡者
+                        </div>
+                        <div class="entity-btn" data-enemy="hunter" style="background: #FF4500;">
+                            <span class="icon">👻</span>
+                            猎手
+                        </div>
+                        <div class="entity-btn" data-enemy="patroller" style="background: #00FF00;">
+                            <span class="icon">👻</span>
+                            巡逻者
+                        </div>
+                        <div class="entity-btn" data-enemy="phantom" style="background: #9370DB;">
+                            <span class="icon">👻</span>
+                            幽灵
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h3>道具</h3>
+                    <div class="entity-palette">
+                        <div class="entity-btn" data-item="magnet" style="background: #C0C0C0;">
+                            <span class="icon">🧲</span>
+                            磁铁
+                        </div>
+                        <div class="entity-btn" data-item="shield" style="background: #00BFFF;">
+                            <span class="icon">🛡️</span>
+                            护盾
+                        </div>
+                        <div class="entity-btn" data-item="wallpass" style="background: #FFD700;">
+                            <span class="icon">🚪</span>
+                            穿墙
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h3>传送门配对</h3>
+                    <div class="portal-list" id="portalList">
+                        <div style="color: #666; text-align: center; padding: 10px;">
+                            在地图上放置P标记传送门位置，然后点击下方按钮配对
+                        </div>
+                    </div>
+                    <button class="btn btn-secondary" onclick="startPortalPairing()" style="width: 100%; margin-top: 10px;">
+                        配对传送门
+                    </button>
+                </div>
+
+                <div class="panel">
+                    <h3>导入/导出</h3>
+                    <div class="file-input-wrapper">
+                        <button class="btn btn-secondary">导入 JSON</button>
+                        <input type="file" id="importFile" accept=".json" onchange="importJSON(event)">
+                    </div>
+                    <button class="btn btn-primary" onclick="exportJSON()">导出 JSON</button>
+                    <button class="btn btn-danger" onclick="clearMap()">清空地图</button>
+                    <textarea class="json-textarea" id="jsonOutput" placeholder="JSON 输出将显示在这里..."></textarea>
+                    <button class="btn btn-warning" onclick="copyJSON()" style="width: 100%;">复制 JSON</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Portal Pairing Modal -->
+    <div id="portalModal" class="hidden" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 1000;">
+        <div class="panel" style="max-width: 400px;">
+            <h3>传送门配对</h3>
+            <p style="margin-bottom: 15px; color: #aaa;">请依次点击两个传送门位置进行配对</p>
+            <p id="portalStatus" style="color: #ffff00;">等待选择第一个传送门...</p>
+            <button class="btn btn-danger" onclick="cancelPortalPairing()" style="margin-top: 15px;">取消</button>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let mapData = {
+            name: "新关卡",
+            chapter: 1,
+            spawnX: 1,
+            spawnY: 1,
+            cols: 20,
+            rows: 15,
+            tiles: [],
+            enemies: [],
+            items: [],
+            portals: [],
+            oneWays: []
+        };
+
+        let currentTool = 'floor';
+        let currentEnemy = null;
+        let currentItem = null;
+        let currentDirection = 'right';
+        let isDrawing = false;
+        let portalPairingMode = false;
+        let firstPortal = null;
+
+        const tileChars = {
+            'wall': '#',
+            'floor': '.',
+            'ice': 'I',
+            'portal': 'P',
+            'oneway': 'O',
+            'jumppad': 'J',
+            'speedup': '+',
+            'slowdown': '-',
+            'blind': 'B'
+        };
+
+        const tileClasses = {
+            '#': 'wall',
+            '.': 'floor',
+            'I': 'ice',
+            'P': 'portal',
+            'O': 'oneway',
+            'J': 'jumppad',
+            '+': 'speedup',
+            '-': 'slowdown',
+            'B': 'blind'
+        };
+
+        const enemyColors = {
+            'chaser': '#FF0000',
+            'wanderer': '#FFA07A',
+            'hunter': '#FF4500',
+            'patroller': '#00FF00',
+            'phantom': '#9370DB'
+        };
+
+        const itemIcons = {
+            'magnet': '🧲',
+            'shield': '🛡️',
+            'wallpass': '🚪'
+        };
+
+        const arrowChars = {
+            'up': '↑',
+            'down': '↓',
+            'left': '←',
+            'right': '→'
+        };
+
+        // Initialize
+        function init() {
+            initMap();
+            renderMap();
+            setupEventListeners();
+        }
+
+        function initMap() {
+            mapData.tiles = [];
+            for (let y = 0; y < mapData.rows; y++) {
+                let row = '';
+                for (let x = 0; x < mapData.cols; x++) {
+                    if (x === 0 || x === mapData.cols - 1 || y === 0 || y === mapData.rows - 1) {
+                        row += '#';
+                    } else {
+                        row += '.';
+                    }
+                }
+                mapData.tiles.push(row);
+            }
+        }
+
+        function renderMap() {
+            const grid = document.getElementById('mapGrid');
+            grid.style.gridTemplateColumns = `repeat(${mapData.cols}, 32px)`;
+            grid.innerHTML = '';
+
+            for (let y = 0; y < mapData.rows; y++) {
+                for (let x = 0; x < mapData.cols; x++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.dataset.x = x;
+                    cell.dataset.y = y;
+
+                    const char = mapData.tiles[y][x];
+                    cell.classList.add(tileClasses[char] || 'floor');
+
+                    // Show dot for floor tiles (collectibles)
+                    if (char === '.' || char === 'I' || char === '+' || char === '-' || char === 'J' || char === 'B') {
+                        const dot = document.createElement('div');
+                        dot.className = 'dot';
+                        cell.appendChild(dot);
+                    }
+
+                    // Show spawn point
+                    if (x === mapData.spawnX && y === mapData.spawnY) {
+                        cell.innerHTML = '<span class="spawn">★</span>';
+                    }
+
+                    // Show portal ID
+                    if (char === 'P') {
+                        const portalIdx = mapData.portals.findIndex(p =>
+                            (p.x1 === x && p.y1 === y) || (p.x2 === x && p.y2 === y)
+                        );
+                        if (portalIdx >= 0) {
+                            cell.innerHTML = `<span class="portal-id">${portalIdx + 1}</span>`;
+                        }
+                    }
+
+                    // Show one-way direction
+                    if (char === 'O') {
+                        const oneway = mapData.oneWays.find(o => o.x === x && o.y === y);
+                        if (oneway) {
+                            cell.innerHTML = `<span class="arrow">${arrowChars[oneway.direction]}</span>`;
+                        }
+                    }
+
+                    // Show enemies
+                    const enemy = mapData.enemies.find(e => e.x === x && e.y === y);
+                    if (enemy) {
+                        const span = document.createElement('span');
+                        span.className = 'enemy';
+                        span.textContent = '👻';
+                        span.style.color = enemyColors[enemy.type];
+                        span.title = enemy.type;
+                        cell.appendChild(span);
+                    }
+
+                    // Show items
+                    const item = mapData.items.find(i => i.x === x && i.y === y);
+                    if (item) {
+                        const span = document.createElement('span');
+                        span.className = 'item';
+                        span.textContent = itemIcons[item.type];
+                        span.title = item.type;
+                        cell.appendChild(span);
+                    }
+
+                    cell.addEventListener('mousedown', (e) => handleCellClick(x, y, e));
+                    cell.addEventListener('mouseenter', (e) => handleCellHover(x, y, e));
+                    cell.addEventListener('contextmenu', (e) => {
+                        e.preventDefault();
+                        removeEntity(x, y);
+                    });
+
+                    grid.appendChild(cell);
+                }
+            }
+        }
+
+        function handleCellClick(x, y, e) {
+            if (e.button === 2) return; // Right click handled by contextmenu
+
+            if (portalPairingMode) {
+                handlePortalPairing(x, y);
+                return;
+            }
+
+            isDrawing = true;
+            paintCell(x, y);
+        }
+
+        function handleCellHover(x, y, e) {
+            document.getElementById('coords').textContent = `坐标: (${x}, ${y})`;
+
+            if (isDrawing && !portalPairingMode && currentTool && !currentEnemy && !currentItem) {
+                paintCell(x, y);
+            }
+        }
+
+        function paintCell(x, y) {
+            if (currentEnemy) {
+                // Remove existing enemy at this position
+                mapData.enemies = mapData.enemies.filter(e => !(e.x === x && e.y === y));
+                mapData.enemies.push({ type: currentEnemy, x, y });
+                renderMap();
+                return;
+            }
+
+            if (currentItem) {
+                // Remove existing item at this position
+                mapData.items = mapData.items.filter(i => !(i.x === x && i.y === y));
+                mapData.items.push({ type: currentItem, x, y });
+                renderMap();
+                return;
+            }
+
+            if (currentTool === 'spawn') {
+                mapData.spawnX = x;
+                mapData.spawnY = y;
+                renderMap();
+                return;
+            }
+
+            if (currentTool === 'eraser') {
+                setTile(x, y, '.');
+                mapData.oneWays = mapData.oneWays.filter(o => !(o.x === x && o.y === y));
+                // Remove portals that include this position
+                mapData.portals = mapData.portals.filter(p =>
+                    !((p.x1 === x && p.y1 === y) || (p.x2 === x && p.y2 === y))
+                );
+                renderMap();
+                return;
+            }
+
+            const char = tileChars[currentTool] || '.';
+            setTile(x, y, char);
+
+            if (currentTool === 'oneway') {
+                // Remove existing oneway at this position and add new one
+                mapData.oneWays = mapData.oneWays.filter(o => !(o.x === x && o.y === y));
+                mapData.oneWays.push({ x, y, direction: currentDirection });
+            }
+
+            renderMap();
+            updatePortalList();
+        }
+
+        function setTile(x, y, char) {
+            let row = mapData.tiles[y];
+            mapData.tiles[y] = row.substring(0, x) + char + row.substring(x + 1);
+        }
+
+        function removeEntity(x, y) {
+            mapData.enemies = mapData.enemies.filter(e => !(e.x === x && e.y === y));
+            mapData.items = mapData.items.filter(i => !(i.x === x && i.y === y));
+            renderMap();
+        }
+
+        function setupEventListeners() {
+            // Tile palette
+            document.querySelectorAll('.tile-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.tile-btn').forEach(b => b.classList.remove('selected'));
+                    document.querySelectorAll('.entity-btn').forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                    currentTool = btn.dataset.tile;
+                    currentEnemy = null;
+                    currentItem = null;
+                    document.getElementById('tileInfo').textContent = '当前: ' + btn.textContent.trim();
+
+                    // Show direction panel for oneway tiles
+                    document.getElementById('directionPanel').style.display =
+                        currentTool === 'oneway' ? 'block' : 'none';
+                });
+            });
+
+            // Enemy palette
+            document.querySelectorAll('.entity-btn[data-enemy]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.tile-btn').forEach(b => b.classList.remove('selected'));
+                    document.querySelectorAll('.entity-btn').forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                    currentEnemy = btn.dataset.enemy;
+                    currentItem = null;
+                    currentTool = null;
+                    document.getElementById('tileInfo').textContent = '当前: ' + btn.textContent.trim();
+                    document.getElementById('directionPanel').style.display = 'none';
+                });
+            });
+
+            // Item palette
+            document.querySelectorAll('.entity-btn[data-item]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.tile-btn').forEach(b => b.classList.remove('selected'));
+                    document.querySelectorAll('.entity-btn').forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                    currentItem = btn.dataset.item;
+                    currentEnemy = null;
+                    currentTool = null;
+                    document.getElementById('tileInfo').textContent = '当前: ' + btn.textContent.trim();
+                    document.getElementById('directionPanel').style.display = 'none';
+                });
+            });
+
+            // Direction buttons
+            document.querySelectorAll('.dir-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.dir-btn').forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                    currentDirection = btn.dataset.dir;
+                });
+            });
+
+            // Mouse up
+            document.addEventListener('mouseup', () => {
+                isDrawing = false;
+            });
+
+            // Form inputs
+            document.getElementById('levelName').addEventListener('change', (e) => {
+                mapData.name = e.target.value;
+            });
+            document.getElementById('chapter').addEventListener('change', (e) => {
+                mapData.chapter = parseInt(e.target.value);
+            });
+        }
+
+        function resizeMap() {
+            const newCols = parseInt(document.getElementById('mapCols').value);
+            const newRows = parseInt(document.getElementById('mapRows').value);
+
+            const newTiles = [];
+            for (let y = 0; y < newRows; y++) {
+                let row = '';
+                for (let x = 0; x < newCols; x++) {
+                    if (x === 0 || x === newCols - 1 || y === 0 || y === newRows - 1) {
+                        row += '#';
+                    } else if (y < mapData.rows && x < mapData.cols) {
+                        row += mapData.tiles[y][x];
+                    } else {
+                        row += '.';
+                    }
+                }
+                newTiles.push(row);
+            }
+
+            mapData.cols = newCols;
+            mapData.rows = newRows;
+            mapData.tiles = newTiles;
+
+            // Filter out entities outside new bounds
+            mapData.enemies = mapData.enemies.filter(e => e.x < newCols && e.y < newRows);
+            mapData.items = mapData.items.filter(i => i.x < newCols && i.y < newRows);
+            mapData.oneWays = mapData.oneWays.filter(o => o.x < newCols && o.y < newRows);
+            mapData.portals = mapData.portals.filter(p =>
+                p.x1 < newCols && p.y1 < newRows && p.x2 < newCols && p.y2 < newRows
+            );
+
+            renderMap();
+        }
+
+        function clearMap() {
+            if (!confirm('确定要清空地图吗？')) return;
+            mapData.enemies = [];
+            mapData.items = [];
+            mapData.portals = [];
+            mapData.oneWays = [];
+            mapData.spawnX = 1;
+            mapData.spawnY = 1;
+            initMap();
+            renderMap();
+            updatePortalList();
+        }
+
+        // Portal pairing
+        function startPortalPairing() {
+            // Find all portal positions
+            const portalPositions = [];
+            for (let y = 0; y < mapData.rows; y++) {
+                for (let x = 0; x < mapData.cols; x++) {
+                    if (mapData.tiles[y][x] === 'P') {
+                        // Check if not already paired
+                        const isPaired = mapData.portals.some(p =>
+                            (p.x1 === x && p.y1 === y) || (p.x2 === x && p.y2 === y)
+                        );
+                        if (!isPaired) {
+                            portalPositions.push({ x, y });
+                        }
+                    }
+                }
+            }
+
+            if (portalPositions.length < 2) {
+                alert('需要至少2个未配对的传送门(P)！');
+                return;
+            }
+
+            portalPairingMode = true;
+            firstPortal = null;
+            document.getElementById('portalModal').classList.remove('hidden');
+            document.getElementById('portalStatus').textContent = '等待选择第一个传送门...';
+        }
+
+        function handlePortalPairing(x, y) {
+            if (mapData.tiles[y][x] !== 'P') {
+                alert('请点击传送门(P)位置！');
+                return;
+            }
+
+            // Check if already paired
+            const isPaired = mapData.portals.some(p =>
+                (p.x1 === x && p.y1 === y) || (p.x2 === x && p.y2 === y)
+            );
+            if (isPaired) {
+                alert('该传送门已配对！');
+                return;
+            }
+
+            if (!firstPortal) {
+                firstPortal = { x, y };
+                document.getElementById('portalStatus').textContent =
+                    `已选择 (${x}, ${y})，请选择第二个传送门...`;
+            } else {
+                if (firstPortal.x === x && firstPortal.y === y) {
+                    alert('不能选择同一个位置！');
+                    return;
+                }
+
+                mapData.portals.push({
+                    x1: firstPortal.x,
+                    y1: firstPortal.y,
+                    x2: x,
+                    y2: y
+                });
+
+                cancelPortalPairing();
+                renderMap();
+                updatePortalList();
+            }
+        }
+
+        function cancelPortalPairing() {
+            portalPairingMode = false;
+            firstPortal = null;
+            document.getElementById('portalModal').classList.add('hidden');
+        }
+
+        function updatePortalList() {
+            const list = document.getElementById('portalList');
+            if (mapData.portals.length === 0) {
+                list.innerHTML = '<div style="color: #666; text-align: center; padding: 10px;">暂无传送门配对</div>';
+                return;
+            }
+
+            list.innerHTML = mapData.portals.map((p, i) => `
+                <div class="portal-item">
+                    <span>${i + 1}: (${p.x1},${p.y1}) ↔ (${p.x2},${p.y2})</span>
+                    <button class="delete-btn" onclick="deletePortal(${i})">删除</button>
+                </div>
+            `).join('');
+        }
+
+        function deletePortal(index) {
+            mapData.portals.splice(index, 1);
+            renderMap();
+            updatePortalList();
+        }
+
+        // Import/Export
+        function exportJSON() {
+            const output = {
+                name: mapData.name,
+                chapter: mapData.chapter,
+                spawnX: mapData.spawnX,
+                spawnY: mapData.spawnY,
+                mapLayout: mapData.tiles,
+                enemies: mapData.enemies,
+                items: mapData.items,
+                portals: mapData.portals,
+                oneWays: mapData.oneWays,
+                patrols: []
+            };
+
+            const json = JSON.stringify(output, null, 2);
+            document.getElementById('jsonOutput').value = json;
+
+            // Download file
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `level_${mapData.name}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+
+                    mapData.name = data.name || "新关卡";
+                    mapData.chapter = data.chapter || 1;
+                    mapData.spawnX = data.spawnX || 1;
+                    mapData.spawnY = data.spawnY || 1;
+                    mapData.tiles = data.mapLayout || [];
+                    mapData.rows = mapData.tiles.length;
+                    mapData.cols = mapData.tiles[0]?.length || 20;
+                    mapData.enemies = data.enemies || [];
+                    mapData.items = data.items || [];
+                    mapData.portals = data.portals || [];
+                    mapData.oneWays = data.oneWays || [];
+
+                    // Update form
+                    document.getElementById('levelName').value = mapData.name;
+                    document.getElementById('chapter').value = mapData.chapter;
+                    document.getElementById('mapCols').value = mapData.cols;
+                    document.getElementById('mapRows').value = mapData.rows;
+
+                    renderMap();
+                    updatePortalList();
+
+                    alert('导入成功！');
+                } catch (err) {
+                    alert('导入失败：' + err.message);
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = ''; // Reset file input
+        }
+
+        function copyJSON() {
+            const textarea = document.getElementById('jsonOutput');
+            if (!textarea.value) {
+                exportJSON();
+            }
+            textarea.select();
+            document.execCommand('copy');
+            alert('已复制到剪贴板！');
+        }
+
+        // Initialize on load
+        window.onload = init;
+    </script>
+</body>
+</html>
