@@ -313,9 +313,9 @@ public class Phantom extends Enemy {
         int currentX = startX;
         int currentY = startY;
         Direction lastDir = Direction.NONE;
-        int minPathLength = 6;
+        int minPathLength = 12; // 最小路径长度，确保巡逻路径足够长
 
-        for (int step = 0; step < 20 && patrolPath.size() < minPathLength; step++) {
+        for (int step = 0; step < 30 && patrolPath.size() < minPathLength; step++) {
             Direction bestDir = null;
             int maxDistance = 0;
 

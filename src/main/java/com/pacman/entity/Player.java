@@ -160,7 +160,12 @@ public class Player extends Entity {
 
                     // 处理地图边界传送
                     handleMapBoundary();
-                } else if (!onIce) {
+                } else if (onIce) {
+                    // 在冰面上撞墙，停止滑行并允许改变方向
+                    alignToGrid();
+                    iceDirection = Direction.NONE;
+                    // 不重置onIce，等离开冰面时自动重置
+                } else {
                     // 撞墙后对齐到格子中心并停止移动
                     alignToGrid();
                     direction = Direction.NONE;
@@ -212,8 +217,8 @@ public class Player extends Entity {
             return;
         }
 
-        // 在冰面上滑行时不能改变方向
-        if (onIce) {
+        // 在冰面上滑行时，只有撞墙停止后才能改变方向
+        if (onIce && iceDirection != Direction.NONE) {
             return;
         }
 

@@ -214,10 +214,10 @@ public class Patroller extends Enemy {
         int currentX = startX;
         int currentY = startY;
         Direction lastDir = Direction.NONE;
-        int minPathLength = 6; // 最小路径长度
+        int minPathLength = 12; // 最小路径长度，确保巡逻路径足够长
 
         // 尝试生成足够长的路径
-        for (int step = 0; step < 20 && patrolPath.size() < minPathLength; step++) {
+        for (int step = 0; step < 30 && patrolPath.size() < minPathLength; step++) {
             Direction bestDir = null;
             int maxDistance = 0;
 
