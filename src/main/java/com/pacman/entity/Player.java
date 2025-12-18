@@ -117,12 +117,13 @@ public class Player extends Entity {
             if (gameMap != null && gameMap.canMoveTo(newX, newY, canWallPass)) {
                 gridX = newX;
                 gridY = newY;
-                
+
                 // 处理地图边界传送
                 handleMapBoundary();
             } else if (!onIce) {
-                // 撞墙后对齐到格子中心
+                // 撞墙后对齐到格子中心并停止移动
                 alignToGrid();
+                direction = Direction.NONE;
             }
         }
         

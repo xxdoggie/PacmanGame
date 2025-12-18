@@ -165,14 +165,17 @@ public class Game {
             }
             
             if (state == GameState.PLAYING || state == GameState.COUNTDOWN) {
-                Direction dir = switch (code) {
-                    case W, UP -> Direction.UP;
-                    case S, DOWN -> Direction.DOWN;
-                    case A, LEFT -> Direction.LEFT;
-                    case D, RIGHT -> Direction.RIGHT;
-                    default -> null;
-                };
-                
+                Direction dir = null;
+                if (code == KeyCode.W || code == KeyCode.UP) {
+                    dir = Direction.UP;
+                } else if (code == KeyCode.S || code == KeyCode.DOWN) {
+                    dir = Direction.DOWN;
+                } else if (code == KeyCode.A || code == KeyCode.LEFT) {
+                    dir = Direction.LEFT;
+                } else if (code == KeyCode.D || code == KeyCode.RIGHT) {
+                    dir = Direction.RIGHT;
+                }
+
                 if (dir != null) {
                     player.setNextDirection(dir);
                 }
