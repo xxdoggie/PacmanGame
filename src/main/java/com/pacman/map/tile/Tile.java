@@ -273,7 +273,12 @@ public class Tile {
             handleNonPlayerStep(entity);
             return;
         }
-        
+
+        // 如果不是冰面，重置冰面状态
+        if (type != TileType.ICE) {
+            player.setOnIce(false);
+        }
+
         switch (type) {
             case ICE -> player.setOnIce(true);
             case SPEED_UP -> player.applySpeedModifier(Constants.SPEED_UP_MULTIPLIER);

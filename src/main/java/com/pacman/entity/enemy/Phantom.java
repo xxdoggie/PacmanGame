@@ -293,33 +293,86 @@ public class Phantom extends Enemy {
     
     /**
      * 生成默认巡逻路径
+     * 沿着可通行的路径探索，生成一条较长的巡逻路线
      */
     public void generateDefaultPath() {
         patrolPath.clear();
-        
-        int centerX = (int) gridX;
-        int centerY = (int) gridY;
-        int range = 4;
-        
-        // 生成一个较大的方形路径
-        int[][] candidates = {
-                {centerX, centerY - range},
-                {centerX + range, centerY},
-                {centerX, centerY + range},
-                {centerX - range, centerY}
-        };
-        
-        for (int[] point : candidates) {
-            if (gameMap != null &&
-                point[0] >= 0 && point[0] < Constants.MAP_COLS &&
-                point[1] >= 0 && point[1] < Constants.MAP_ROWS &&
-                gameMap.canMoveTo(point[0], point[1], false)) {
-                patrolPath.add(point);
+
+        if (gameMap == null) {
+            patrolPath.add(new int[]{(int) gridX, (int) gridY});
+            return;
+        }
+
+        int startX = (int) gridX;
+        int startY = (int) gridY;
+
+        // 添加起点
+        patrolPath.add(new int[]{startX, startY});
+
+        // 使用探索算法生成路径
+        int currentX = startX;
+        int currentY = startY;
+        Direction lastDir = Direction.NONE;
+        int minPathLength = 6;
+
+        for (int step = 0; step < 20 && patrolPath.size() < minPathLength; step++) {
+            Direction bestDir = null;
+            int maxDistance = 0;
+
+            for (Direction dir : Direction.validDirections()) {
+                if (dir == lastDir.getOpposite() && patrolPath.size() > 1) {
+                    continue;
+                }
+
+                int distance = 0;
+                int testX = currentX;
+                int testY = currentY;
+
+                while (distance < 8) {
+                    testX += dir.getDx();
+                    testY += dir.getDy();
+
+                    if (testX < 1 || testX >= Constants.MAP_COLS - 1 ||
+                        testY < 1 || testY >= Constants.MAP_ROWS - 1 ||
+                        !gameMap.canMoveTo(testX, testY, false)) {
+                        break;
+                    }
+                    distance++;
+                }
+
+                if (distance > maxDistance) {
+                    maxDistance = distance;
+                    bestDir = dir;
+                }
+            }
+
+            if (bestDir != null && maxDistance >= 2) {
+                int walkDistance = Math.max(2, maxDistance / 2);
+                currentX += bestDir.getDx() * walkDistance;
+                currentY += bestDir.getDy() * walkDistance;
+
+                int[] lastPoint = patrolPath.get(patrolPath.size() - 1);
+                if (lastPoint[0] != currentX || lastPoint[1] != currentY) {
+                    patrolPath.add(new int[]{currentX, currentY});
+                }
+
+                lastDir = bestDir;
+            } else {
+                lastDir = Direction.NONE;
             }
         }
-        
-        if (patrolPath.isEmpty()) {
-            patrolPath.add(new int[]{centerX, centerY});
+
+        if (patrolPath.size() < 3) {
+            int[][] directions = {{0, -4}, {4, 0}, {0, 4}, {-4, 0}};
+            for (int[] delta : directions) {
+                int px = startX + delta[0];
+                int py = startY + delta[1];
+                if (px >= 1 && px < Constants.MAP_COLS - 1 &&
+                    py >= 1 && py < Constants.MAP_ROWS - 1 &&
+                    gameMap.canMoveTo(px, py, false)) {
+                    patrolPath.add(new int[]{px, py});
+                }
+            }
         }
     }
     
