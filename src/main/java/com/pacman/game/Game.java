@@ -15,6 +15,7 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -47,6 +48,9 @@ public class Game {
     private Label timeLabel;
     private Label livesLabel;
     private VBox pauseOverlay;
+
+    /** 碰撞冷却时间（防止连续扣血） */
+    private double collisionCooldown;
     
     public Game(int levelNumber) {
         this.currentLevel = levelNumber;
@@ -55,7 +59,8 @@ public class Game {
         this.gameTime = 0;
         this.countdown = 3;
         this.countdownTimer = 0;
-        
+        this.collisionCooldown = 0;
+
         initializeGame();
         createScene();
     }
@@ -156,16 +161,18 @@ public class Game {
     }
     
     private void setupKeyboardInput() {
-        // 禁用焦点遍历，防止方向键被用于UI导航
-        mainLayout.setFocusTraversable(false);
-        gameCanvas.setFocusTraversable(false);
+        // 让mainLayout可以获得焦点
+        mainLayout.setFocusTraversable(true);
 
-        scene.setOnKeyPressed(event -> {
+        // 使用addEventFilter在事件到达子节点之前捕获，确保能接收到所有键盘事件
+        scene.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             KeyCode code = event.getCode();
 
-            // 消费方向键事件，防止被用于焦点遍历
+            // 消费方向键和WASD事件，防止被用于焦点遍历
             if (code == KeyCode.UP || code == KeyCode.DOWN ||
-                code == KeyCode.LEFT || code == KeyCode.RIGHT) {
+                code == KeyCode.LEFT || code == KeyCode.RIGHT ||
+                code == KeyCode.W || code == KeyCode.A ||
+                code == KeyCode.S || code == KeyCode.D) {
                 event.consume();
             }
 
@@ -205,20 +212,21 @@ public class Game {
     
     public void start() {
         lastFrameTime = System.nanoTime();
-        
+        mainLayout.requestFocus();
+
         gameLoop = new AnimationTimer() {
             @Override
             public void handle(long now) {
                 double deltaTime = (now - lastFrameTime) / 1_000_000_000.0;
                 lastFrameTime = now;
-                
+
                 deltaTime = Math.min(deltaTime, 0.05);
-                
+
                 update(deltaTime);
                 render();
             }
         };
-        
+
         gameLoop.start();
     }
     
@@ -251,25 +259,32 @@ public class Game {
     
     private void updatePlaying(double deltaTime) {
         gameTime += deltaTime;
-        
+
+        // 更新碰撞冷却时间
+        if (collisionCooldown > 0) {
+            collisionCooldown -= deltaTime;
+        }
+
         player.update(deltaTime);
         gameMap.update(player, deltaTime);
-        
-        if (gameMap.checkEnemyCollision(player)) {
+
+        // 只有在冷却时间结束后才检测碰撞
+        if (collisionCooldown <= 0 && gameMap.checkEnemyCollision(player)) {
             lives--;
             livesLabel.setText("生命: " + lives);
-            
+            // 设置1.5秒的碰撞冷却时间，防止连续扣血
+            collisionCooldown = 1.5;
+
             if (lives <= 0) {
                 onGameOver();
-            } else {
-                resetPlayerPosition();
             }
+            // 不再回到出生点，继续游戏
         }
-        
+
         if (gameMap.allDotsCollected()) {
             onLevelComplete();
         }
-        
+
         dotsLabel.setText("豆子: " + gameMap.getRemainingDots());
         timeLabel.setText(String.format("时间: %.1fs", gameTime));
     }
@@ -278,10 +293,9 @@ public class Game {
         player.setGridX(gameMap.getSpawnX());
         player.setGridY(gameMap.getSpawnY());
         player.setDirection(Direction.NONE);
-        
-        state = GameState.COUNTDOWN;
-        countdown = 3;
-        countdownTimer = 0;
+
+        // 复活时不暂停游戏，直接继续（保持PLAYING状态）
+        // 只有游戏开始时才进入COUNTDOWN状态
     }
     
     private void restartLevel() {
