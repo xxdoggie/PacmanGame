@@ -15,6 +15,7 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -160,11 +161,11 @@ public class Game {
     }
     
     private void setupKeyboardInput() {
-        // 禁用焦点遍历，防止方向键被用于UI导航
-        mainLayout.setFocusTraversable(false);
-        gameCanvas.setFocusTraversable(false);
+        // 让mainLayout可以获得焦点
+        mainLayout.setFocusTraversable(true);
 
-        scene.setOnKeyPressed(event -> {
+        // 使用addEventFilter在事件到达子节点之前捕获，确保能接收到所有键盘事件
+        scene.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             KeyCode code = event.getCode();
 
             // 日志：记录所有按键事件
@@ -221,20 +222,24 @@ public class Game {
     
     public void start() {
         lastFrameTime = System.nanoTime();
-        
+
+        // 请求焦点，确保键盘事件能被接收
+        mainLayout.requestFocus();
+        System.out.println("[游戏] 游戏开始，已请求键盘焦点");
+
         gameLoop = new AnimationTimer() {
             @Override
             public void handle(long now) {
                 double deltaTime = (now - lastFrameTime) / 1_000_000_000.0;
                 lastFrameTime = now;
-                
+
                 deltaTime = Math.min(deltaTime, 0.05);
-                
+
                 update(deltaTime);
                 render();
             }
         };
-        
+
         gameLoop.start();
     }
     
