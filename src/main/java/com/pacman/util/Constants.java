@@ -34,13 +34,13 @@ public final class Constants {
     
     // ==================== 游戏设置 ====================
     /** 游戏帧率（每秒帧数） */
-    public static final int FPS = 60;
+    public static final int FPS = 120;
     
     /** 每帧时间间隔（纳秒） */
     public static final long FRAME_TIME = 1_000_000_000L / FPS;
     
     /** 默认生命数 */
-    public static final int DEFAULT_LIVES = 1;
+    public static final int DEFAULT_LIVES = 100;
     
     /** 总关卡数 */
     public static final int TOTAL_LEVELS = 30;

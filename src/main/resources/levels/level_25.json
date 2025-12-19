@@ -1,34 +1,58 @@
 {
-  "name": "冰封试炼",
+  "name": "25",
   "chapter": 5,
   "spawnX": 10,
   "spawnY": 7,
   "mapLayout": [
     "####################",
-    "#IIIIIIIIIIIIIIIIII#",
-    "#I##I##IIII##I##III#",
-    "#IIIIII#II#IIIIIII#",
-    "#I##I#IIIIII#I##II#",
-    "#IIIII#I##I#IIIIII#",
+    "#I..I..IIII..I..I.I#",
+    "#I##I##II.I##I##III#",
+    "#I...II#II#II.III.#",
+    "#I##I#I.II.I#I##II#",
+    "#....I#I##I#I.III.#",
     "#I#II#IIIIII#II#II#",
-    "#IIIIIIII.IIIIIIIII#",
+    "#I..III.I..II.III.I#",
     "#I#II#IIIIII#II#II#",
-    "#IIIII#I##I#IIIIII#",
-    "#I##I#IIIIII#I##II#",
-    "#IIIIII#II#IIIIIII#",
+    "#....I#I##I#I.III.#",
+    "#I##I#I.III.#I##II#",
+    "#I..III#I.#II.III.#",
     "#I##I##IIII##I##III#",
-    "#IIIIIIIIIIIIIIIIII#",
+    "#I.I..I..IIII..I..I#",
     "####################"
   ],
   "enemies": [
-    {"type": "chaser", "x": 1, "y": 1},
-    {"type": "chaser", "x": 18, "y": 1},
-    {"type": "chaser", "x": 1, "y": 13},
-    {"type": "hunter", "x": 18, "y": 13}
+    {
+      "type": "chaser",
+      "x": 1,
+      "y": 1
+    },
+    {
+      "type": "chaser",
+      "x": 18,
+      "y": 1
+    },
+    {
+      "type": "chaser",
+      "x": 1,
+      "y": 13
+    },
+    {
+      "type": "hunter",
+      "x": 18,
+      "y": 13
+    }
   ],
   "items": [
-    {"type": "shield", "x": 5, "y": 7},
-    {"type": "shield", "x": 14, "y": 7}
+    {
+      "type": "shield",
+      "x": 5,
+      "y": 7
+    },
+    {
+      "type": "shield",
+      "x": 14,
+      "y": 7
+    }
   ],
   "portals": [],
   "oneWays": [],
