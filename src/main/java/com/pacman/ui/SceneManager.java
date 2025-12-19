@@ -2,16 +2,23 @@ package com.pacman.ui;
 
 import com.pacman.game.Game;
 import com.pacman.game.GameState;
+import com.pacman.ui.LevelIntroData.LevelIntro;
+import com.pacman.ui.LevelIntroData.NewElement;
 import com.pacman.util.Constants;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.ArcType;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 
 /**
@@ -146,14 +153,365 @@ public class SceneManager {
     }
     
     /**
-     * 开始指定关卡
+     * 开始指定关卡（检查是否需要显示介绍页面）
      * @param level 关卡编号
      */
     public void startLevel(int level) {
+        // 检查是否有新元素介绍
+        if (LevelIntroData.hasIntro(level)) {
+            showLevelIntro(level);
+        } else {
+            startLevelDirectly(level);
+        }
+    }
+
+    /**
+     * 直接开始关卡（跳过介绍页面）
+     * @param level 关卡编号
+     */
+    public void startLevelDirectly(int level) {
         game = new Game(level);
         Scene gameScene = game.getScene();
         primaryStage.setScene(gameScene);
         game.start();
+    }
+
+    /**
+     * 显示关卡介绍页面
+     * @param level 关卡编号
+     */
+    public void showLevelIntro(int level) {
+        LevelIntro intro = LevelIntroData.getLevelIntro(level);
+        if (intro == null) {
+            startLevelDirectly(level);
+            return;
+        }
+
+        VBox mainLayout = new VBox(20);
+        mainLayout.setAlignment(Pos.CENTER);
+        mainLayout.setPadding(new Insets(30));
+        mainLayout.setBackground(new Background(new BackgroundFill(
+                Color.web("#1A1A2E"), CornerRadii.EMPTY, Insets.EMPTY)));
+
+        // 关卡标题
+        Label levelLabel = new Label("关卡 " + level);
+        levelLabel.setFont(Font.font("Arial", FontWeight.BOLD, 24));
+        levelLabel.setTextFill(Color.LIGHTGRAY);
+
+        // 章节标题
+        Label titleLabel = new Label(intro.title());
+        titleLabel.setFont(Font.font("Arial", FontWeight.BOLD, 42));
+        titleLabel.setTextFill(Color.GOLD);
+
+        // 副标题
+        Label subtitleLabel = new Label(intro.subtitle());
+        subtitleLabel.setFont(Font.font("Arial", FontWeight.NORMAL, 18));
+        subtitleLabel.setTextFill(Color.LIGHTGRAY);
+
+        // 新元素容器
+        VBox elementsContainer = new VBox(25);
+        elementsContainer.setAlignment(Pos.CENTER);
+        elementsContainer.setPadding(new Insets(20, 0, 20, 0));
+
+        // 新元素标题
+        Label newElementsTitle = new Label("— 新元素介绍 —");
+        newElementsTitle.setFont(Font.font("Arial", FontWeight.BOLD, 20));
+        newElementsTitle.setTextFill(Color.WHITE);
+        elementsContainer.getChildren().add(newElementsTitle);
+
+        // 添加每个新元素的介绍卡片
+        for (NewElement element : intro.newElements()) {
+            HBox elementCard = createElementCard(element);
+            elementsContainer.getChildren().add(elementCard);
+        }
+
+        // 如果元素太多，使用滚动面板
+        ScrollPane scrollPane = new ScrollPane(elementsContainer);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setMaxHeight(350);
+        scrollPane.setStyle("-fx-background: #1A1A2E; -fx-background-color: #1A1A2E;");
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+
+        // 按钮区域
+        HBox buttonBox = new HBox(20);
+        buttonBox.setAlignment(Pos.CENTER);
+
+        Button startBtn = createMenuButton("开始游戏");
+        startBtn.setOnAction(e -> startLevelDirectly(level));
+        startBtn.setStyle(
+                "-fx-background-color: #E94560; " +
+                "-fx-text-fill: white; " +
+                "-fx-border-color: #FF6B6B; " +
+                "-fx-border-width: 2; " +
+                "-fx-border-radius: 10; " +
+                "-fx-background-radius: 10; " +
+                "-fx-cursor: hand;"
+        );
+
+        Button backBtn = createMenuButton("返回选择");
+        backBtn.setOnAction(e -> showLevelSelect());
+
+        buttonBox.getChildren().addAll(startBtn, backBtn);
+
+        // 提示文字
+        Label tipLabel = new Label("按 Enter 键快速开始");
+        tipLabel.setFont(Font.font("Arial", FontWeight.NORMAL, 14));
+        tipLabel.setTextFill(Color.GRAY);
+
+        mainLayout.getChildren().addAll(
+                levelLabel,
+                titleLabel,
+                subtitleLabel,
+                createSpacer(10),
+                scrollPane,
+                createSpacer(10),
+                buttonBox,
+                tipLabel
+        );
+
+        Scene introScene = new Scene(mainLayout, Constants.WINDOW_WIDTH, Constants.WINDOW_HEIGHT);
+
+        // 添加键盘快捷键
+        introScene.setOnKeyPressed(e -> {
+            switch (e.getCode()) {
+                case ENTER, SPACE -> startLevelDirectly(level);
+                case ESCAPE -> showLevelSelect();
+                default -> {}
+            }
+        });
+
+        primaryStage.setScene(introScene);
+    }
+
+    /**
+     * 创建元素介绍卡片
+     * @param element 新元素数据
+     * @return 元素卡片HBox
+     */
+    private HBox createElementCard(NewElement element) {
+        HBox card = new HBox(20);
+        card.setAlignment(Pos.CENTER_LEFT);
+        card.setPadding(new Insets(15));
+        card.setMaxWidth(650);
+        card.setStyle(
+                "-fx-background-color: #16213E; " +
+                "-fx-background-radius: 15; " +
+                "-fx-border-color: " + element.color() + "; " +
+                "-fx-border-width: 2; " +
+                "-fx-border-radius: 15;"
+        );
+
+        // 图标区域
+        Canvas iconCanvas = new Canvas(80, 80);
+        GraphicsContext gc = iconCanvas.getGraphicsContext2D();
+        drawElementIcon(gc, element, 40, 40, 30);
+
+        // 文字区域
+        VBox textBox = new VBox(8);
+        textBox.setAlignment(Pos.CENTER_LEFT);
+
+        // 元素类型标签
+        String typeText = switch (element.type()) {
+            case ENEMY -> "[敌人]";
+            case ITEM -> "[道具]";
+            case TERRAIN -> "[地形]";
+            case MECHANIC -> "[机制]";
+        };
+        Label typeLabel = new Label(typeText);
+        typeLabel.setFont(Font.font("Arial", FontWeight.BOLD, 12));
+        typeLabel.setTextFill(Color.web(element.color()));
+
+        // 名称
+        Label nameLabel = new Label(element.name());
+        nameLabel.setFont(Font.font("Arial", FontWeight.BOLD, 22));
+        nameLabel.setTextFill(Color.WHITE);
+
+        // 描述
+        Label descLabel = new Label(element.description());
+        descLabel.setFont(Font.font("Arial", FontWeight.NORMAL, 14));
+        descLabel.setTextFill(Color.LIGHTGRAY);
+        descLabel.setWrapText(true);
+        descLabel.setMaxWidth(450);
+
+        // 提示（Tips）
+        Label tipsLabel = new Label("💡 " + element.tips());
+        tipsLabel.setFont(Font.font("Arial", FontWeight.NORMAL, 13));
+        tipsLabel.setTextFill(Color.GOLD);
+        tipsLabel.setWrapText(true);
+        tipsLabel.setMaxWidth(450);
+
+        textBox.getChildren().addAll(typeLabel, nameLabel, descLabel, tipsLabel);
+        card.getChildren().addAll(iconCanvas, textBox);
+
+        return card;
+    }
+
+    /**
+     * 绘制元素图标
+     * @param gc 图形上下文
+     * @param element 元素数据
+     * @param centerX 中心X坐标
+     * @param centerY 中心Y坐标
+     * @param size 图标大小
+     */
+    private void drawElementIcon(GraphicsContext gc, NewElement element, double centerX, double centerY, double size) {
+        gc.setFill(Color.web(element.color()));
+
+        switch (element.iconType()) {
+            case "player" -> {
+                // 绘制吃豆人
+                gc.setFill(Color.YELLOW);
+                gc.fillArc(centerX - size, centerY - size, size * 2, size * 2, 35, 290, ArcType.ROUND);
+            }
+            case "chaser", "wanderer", "hunter", "patroller", "phantom" -> {
+                // 绘制幽灵形状
+                drawGhostIcon(gc, centerX, centerY, size, element.color());
+            }
+            case "ice" -> {
+                // 绘制冰面方块
+                gc.fillRoundRect(centerX - size, centerY - size, size * 2, size * 2, 8, 8);
+                gc.setStroke(Color.WHITE);
+                gc.setLineWidth(2);
+                gc.strokeLine(centerX - size * 0.5, centerY - size * 0.3, centerX + size * 0.3, centerY + size * 0.5);
+                gc.strokeLine(centerX - size * 0.3, centerY + size * 0.2, centerX + size * 0.5, centerY - size * 0.4);
+            }
+            case "jumppad" -> {
+                // 绘制跳板
+                gc.fillRoundRect(centerX - size, centerY - size * 0.5, size * 2, size, 5, 5);
+                gc.setFill(Color.WHITE);
+                // 向上箭头
+                gc.fillPolygon(
+                        new double[]{centerX - size * 0.4, centerX, centerX + size * 0.4},
+                        new double[]{centerY + size * 0.8, centerY - size * 0.8, centerY + size * 0.8},
+                        3
+                );
+            }
+            case "speedup" -> {
+                // 绘制加速带
+                gc.fillRoundRect(centerX - size, centerY - size * 0.5, size * 2, size, 5, 5);
+                gc.setFill(Color.WHITE);
+                // 双箭头
+                double arrowY = centerY;
+                gc.fillPolygon(
+                        new double[]{centerX - size * 0.6, centerX - size * 0.2, centerX - size * 0.6},
+                        new double[]{arrowY - size * 0.3, arrowY, arrowY + size * 0.3},
+                        3
+                );
+                gc.fillPolygon(
+                        new double[]{centerX + size * 0.1, centerX + size * 0.5, centerX + size * 0.1},
+                        new double[]{arrowY - size * 0.3, arrowY, arrowY + size * 0.3},
+                        3
+                );
+            }
+            case "slowdown" -> {
+                // 绘制减速带
+                gc.fillRoundRect(centerX - size, centerY - size * 0.5, size * 2, size, 5, 5);
+                gc.setStroke(Color.WHITE);
+                gc.setLineWidth(3);
+                // 横条纹
+                for (int i = -2; i <= 2; i++) {
+                    gc.strokeLine(centerX + i * size * 0.3, centerY - size * 0.3,
+                            centerX + i * size * 0.3, centerY + size * 0.3);
+                }
+            }
+            case "portal" -> {
+                // 绘制传送门（旋涡效果）
+                gc.setStroke(Color.web(element.color()));
+                gc.setLineWidth(3);
+                for (int i = 0; i < 3; i++) {
+                    double r = size * (0.4 + i * 0.25);
+                    gc.strokeOval(centerX - r, centerY - r, r * 2, r * 2);
+                }
+                gc.setFill(Color.web(element.color()));
+                gc.fillOval(centerX - size * 0.2, centerY - size * 0.2, size * 0.4, size * 0.4);
+            }
+            case "oneway" -> {
+                // 绘制单向通道
+                gc.fillRoundRect(centerX - size, centerY - size * 0.5, size * 2, size, 5, 5);
+                gc.setFill(Color.WHITE);
+                // 箭头
+                gc.fillPolygon(
+                        new double[]{centerX - size * 0.5, centerX + size * 0.5, centerX - size * 0.5},
+                        new double[]{centerY - size * 0.3, centerY, centerY + size * 0.3},
+                        3
+                );
+            }
+            case "blindtrap" -> {
+                // 绘制致盲陷阱
+                gc.fillRoundRect(centerX - size, centerY - size, size * 2, size * 2, 8, 8);
+                gc.setFill(Color.BLACK);
+                gc.fillOval(centerX - size * 0.5, centerY - size * 0.5, size, size);
+                gc.setStroke(Color.WHITE);
+                gc.setLineWidth(2);
+                gc.strokeOval(centerX - size * 0.5, centerY - size * 0.5, size, size);
+            }
+            case "magnet" -> {
+                // 绘制磁铁（U形）
+                gc.setStroke(Color.web(element.color()));
+                gc.setLineWidth(6);
+                gc.strokeArc(centerX - size * 0.6, centerY - size * 0.6,
+                        size * 1.2, size * 1.2, 180, 180, ArcType.OPEN);
+                gc.setFill(Color.RED);
+                gc.fillRect(centerX - size * 0.7, centerY - size * 0.1, size * 0.3, size * 0.6);
+                gc.setFill(Color.BLUE);
+                gc.fillRect(centerX + size * 0.4, centerY - size * 0.1, size * 0.3, size * 0.6);
+            }
+            case "shield" -> {
+                // 绘制护盾
+                gc.setFill(Color.web(element.color()));
+                gc.fillOval(centerX - size * 0.8, centerY - size * 0.8, size * 1.6, size * 1.6);
+                gc.setFill(Color.web("#1A1A2E"));
+                gc.fillOval(centerX - size * 0.5, centerY - size * 0.5, size, size);
+                gc.setFill(Color.web(element.color()));
+                gc.fillOval(centerX - size * 0.3, centerY - size * 0.3, size * 0.6, size * 0.6);
+            }
+            case "wallpass" -> {
+                // 绘制穿墙术（半透明墙+穿越效果）
+                gc.setGlobalAlpha(0.5);
+                gc.setFill(Color.GRAY);
+                gc.fillRect(centerX - size * 0.8, centerY - size * 0.8, size * 1.6, size * 1.6);
+                gc.setGlobalAlpha(1.0);
+                gc.setFill(Color.web(element.color()));
+                gc.fillOval(centerX - size * 0.4, centerY - size * 0.4, size * 0.8, size * 0.8);
+                // 穿越线条
+                gc.setStroke(Color.web(element.color()));
+                gc.setLineWidth(2);
+                gc.strokeLine(centerX - size, centerY, centerX + size, centerY);
+            }
+            default -> {
+                // 默认：圆形
+                gc.fillOval(centerX - size * 0.8, centerY - size * 0.8, size * 1.6, size * 1.6);
+            }
+        }
+    }
+
+    /**
+     * 绘制幽灵图标
+     */
+    private void drawGhostIcon(GraphicsContext gc, double x, double y, double size, String color) {
+        gc.setFill(Color.web(color));
+
+        // 上半部分（半圆）
+        gc.fillArc(x - size, y - size, size * 2, size * 2, 0, 180, ArcType.ROUND);
+
+        // 下半部分（矩形）
+        gc.fillRect(x - size, y, size * 2, size * 0.7);
+
+        // 波浪底部
+        double waveY = y + size * 0.7;
+        double waveWidth = size * 2 / 3.0;
+        for (int i = 0; i < 3; i++) {
+            gc.fillOval(x - size + i * waveWidth, waveY - waveWidth / 4, waveWidth, waveWidth / 2);
+        }
+
+        // 眼睛
+        gc.setFill(Color.WHITE);
+        gc.fillOval(x - size * 0.5, y - size * 0.4, size * 0.4, size * 0.5);
+        gc.fillOval(x + size * 0.1, y - size * 0.4, size * 0.4, size * 0.5);
+
+        gc.setFill(Color.BLUE);
+        gc.fillOval(x - size * 0.4, y - size * 0.3, size * 0.2, size * 0.3);
+        gc.fillOval(x + size * 0.2, y - size * 0.3, size * 0.2, size * 0.3);
     }
     
     /**
