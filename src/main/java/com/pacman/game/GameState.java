@@ -29,9 +29,12 @@ public enum GameState {
     
     /** 显示剧情/对话 */
     STORY,
-    
+
     /** 倒计时准备阶段 */
-    COUNTDOWN;
+    COUNTDOWN,
+
+    /** 关卡介绍页面 */
+    LEVEL_INTRO;
     
     /**
      * 判断是否可以暂停
@@ -54,7 +57,7 @@ public enum GameState {
      * @return 是否需要显示覆盖层
      */
     public boolean needsOverlay() {
-        return this == PAUSED || this == LEVEL_COMPLETE || 
-               this == GAME_OVER || this == VICTORY || this == STORY;
+        return this == PAUSED || this == LEVEL_COMPLETE ||
+               this == GAME_OVER || this == VICTORY || this == STORY || this == LEVEL_INTRO;
     }
 }
