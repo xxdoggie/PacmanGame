@@ -8,13 +8,13 @@ import com.pacman.util.Constants;
 public enum ItemType {
     
     /** 磁铁：自动吸取范围内豆子 */
-    MAGNET("磁铁", Constants.COLOR_ITEM_MAGNET, Constants.MAGNET_DURATION),
-    
+    MAGNET("Magnet", Constants.COLOR_ITEM_MAGNET, Constants.MAGNET_DURATION),
+
     /** 护盾：抵挡一次敌人碰撞 */
-    SHIELD("护盾", Constants.COLOR_ITEM_SHIELD, Constants.SHIELD_DURATION),
-    
+    SHIELD("Shield", Constants.COLOR_ITEM_SHIELD, Constants.SHIELD_DURATION),
+
     /** 穿墙术：短暂时间可以穿越墙壁 */
-    WALL_PASS("穿墙术", Constants.COLOR_ITEM_WALL_PASS, Constants.WALL_PASS_DURATION);
+    WALL_PASS("Wall Pass", Constants.COLOR_ITEM_WALL_PASS, Constants.WALL_PASS_DURATION);
     
     /** 道具名称 */
     private final String name;

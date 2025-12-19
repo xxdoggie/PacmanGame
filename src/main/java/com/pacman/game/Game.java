@@ -104,12 +104,12 @@ public class Game {
         topUI.setBackground(new Background(new BackgroundFill(
                 Color.web("#16213E"), CornerRadii.EMPTY, Insets.EMPTY)));
         
-        levelLabel = createUILabel("关卡: " + currentLevel);
-        dotsLabel = createUILabel("豆子: " + gameMap.getRemainingDots());
-        timeLabel = createUILabel("时间: 0.0s");
-        livesLabel = createUILabel("生命: " + lives);
-        
-        Button pauseBtn = new Button("暂停 (ESC)");
+        levelLabel = createUILabel("Level: " + currentLevel);
+        dotsLabel = createUILabel("Dots: " + gameMap.getRemainingDots());
+        timeLabel = createUILabel("Time: 0.0s");
+        livesLabel = createUILabel("Lives: " + lives);
+
+        Button pauseBtn = new Button("Pause (ESC)");
         pauseBtn.setFont(Font.font("Arial", FontWeight.BOLD, 14));
         pauseBtn.setStyle("-fx-background-color: #E94560; -fx-text-fill: white; -fx-padding: 8 16; -fx-background-radius: 5;");
         pauseBtn.setOnAction(e -> togglePause());
@@ -132,17 +132,17 @@ public class Game {
                 Color.web("#000000", 0.7), CornerRadii.EMPTY, Insets.EMPTY)));
         overlay.setPrefSize(Constants.MAP_WIDTH, Constants.MAP_HEIGHT);
         
-        Label pauseLabel = new Label("游戏暂停");
+        Label pauseLabel = new Label("Game Paused");
         pauseLabel.setFont(Font.font("Arial", FontWeight.BOLD, 48));
         pauseLabel.setTextFill(Color.WHITE);
-        
-        Button resumeBtn = createOverlayButton("继续游戏");
+
+        Button resumeBtn = createOverlayButton("Resume");
         resumeBtn.setOnAction(e -> togglePause());
-        
-        Button restartBtn = createOverlayButton("重新开始");
+
+        Button restartBtn = createOverlayButton("Restart");
         restartBtn.setOnAction(e -> restartLevel());
-        
-        Button menuBtn = createOverlayButton("返回菜单");
+
+        Button menuBtn = createOverlayButton("Back to Menu");
         menuBtn.setOnAction(e -> {
             stop();
             SceneManager.getInstance().showMenu();
@@ -271,7 +271,7 @@ public class Game {
         // 只有在冷却时间结束后才检测碰撞
         if (collisionCooldown <= 0 && gameMap.checkEnemyCollision(player)) {
             lives--;
-            livesLabel.setText("生命: " + lives);
+            livesLabel.setText("Lives: " + lives);
             // 设置1.5秒的碰撞冷却时间，防止连续扣血
             collisionCooldown = 1.5;
 
@@ -285,8 +285,8 @@ public class Game {
             onLevelComplete();
         }
 
-        dotsLabel.setText("豆子: " + gameMap.getRemainingDots());
-        timeLabel.setText(String.format("时间: %.1fs", gameTime));
+        dotsLabel.setText("Dots: " + gameMap.getRemainingDots());
+        timeLabel.setText(String.format("Time: %.1fs", gameTime));
     }
     
     private void resetPlayerPosition() {
@@ -309,9 +309,9 @@ public class Game {
         state = GameState.COUNTDOWN;
         
         pauseOverlay.setVisible(false);
-        livesLabel.setText("生命: " + lives);
-        dotsLabel.setText("豆子: " + gameMap.getRemainingDots());
-        timeLabel.setText("时间: 0.0s");
+        livesLabel.setText("Lives: " + lives);
+        dotsLabel.setText("Dots: " + gameMap.getRemainingDots());
+        timeLabel.setText("Time: 0.0s");
         
         start();
     }

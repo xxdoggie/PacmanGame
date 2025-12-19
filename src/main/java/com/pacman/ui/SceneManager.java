@@ -84,11 +84,11 @@ public class SceneManager {
         subtitleLabel.setTextFill(Color.web("#FFD700"));
         
         // 单人模式按钮
-        Button singlePlayerBtn = createMenuButton("单人模式");
+        Button singlePlayerBtn = createMenuButton("Single Player");
         singlePlayerBtn.setOnAction(e -> showLevelSelect());
-        
+
         // 双人模式按钮（暂时禁用）
-        Button multiPlayerBtn = createMenuButton("双人模式");
+        Button multiPlayerBtn = createMenuButton("Multiplayer");
         multiPlayerBtn.setOnAction(e -> {
             // TODO: 实现双人模式
             System.out.println("双人模式开发中...");
@@ -96,7 +96,7 @@ public class SceneManager {
         multiPlayerBtn.setDisable(true);
         
         // 退出按钮
-        Button exitBtn = createMenuButton("退出游戏");
+        Button exitBtn = createMenuButton("Exit Game");
         exitBtn.setOnAction(e -> primaryStage.close());
         
         menuLayout.getChildren().addAll(
@@ -123,7 +123,7 @@ public class SceneManager {
                 Color.web("#1A1A2E"), CornerRadii.EMPTY, Insets.EMPTY)));
         
         // 标题
-        Label titleLabel = new Label("选择关卡");
+        Label titleLabel = new Label("Select Level");
         titleLabel.setFont(Font.font("Arial", FontWeight.BOLD, 48));
         titleLabel.setTextFill(Color.WHITE);
         
@@ -143,9 +143,9 @@ public class SceneManager {
         }
         
         // 返回按钮
-        Button backBtn = createMenuButton("返回主菜单");
+        Button backBtn = createMenuButton("Back to Menu");
         backBtn.setOnAction(e -> showMenu());
-        
+
         mainLayout.getChildren().addAll(titleLabel, createSpacer(20), levelGrid, createSpacer(20), backBtn);
         
         Scene levelSelectScene = new Scene(mainLayout, Constants.WINDOW_WIDTH, Constants.WINDOW_HEIGHT);
@@ -194,7 +194,7 @@ public class SceneManager {
                 Color.web("#1A1A2E"), CornerRadii.EMPTY, Insets.EMPTY)));
 
         // 关卡标题
-        Label levelLabel = new Label("关卡 " + level);
+        Label levelLabel = new Label("Level " + level);
         levelLabel.setFont(Font.font("Arial", FontWeight.BOLD, 24));
         levelLabel.setTextFill(Color.LIGHTGRAY);
 
@@ -214,7 +214,7 @@ public class SceneManager {
         elementsContainer.setPadding(new Insets(20, 0, 20, 0));
 
         // 新元素标题
-        Label newElementsTitle = new Label("— 新元素介绍 —");
+        Label newElementsTitle = new Label("— New Elements —");
         newElementsTitle.setFont(Font.font("Arial", FontWeight.BOLD, 20));
         newElementsTitle.setTextFill(Color.WHITE);
         elementsContainer.getChildren().add(newElementsTitle);
@@ -236,7 +236,7 @@ public class SceneManager {
         HBox buttonBox = new HBox(20);
         buttonBox.setAlignment(Pos.CENTER);
 
-        Button startBtn = createMenuButton("开始游戏");
+        Button startBtn = createMenuButton("Start Game");
         startBtn.setOnAction(e -> startLevelDirectly(level));
         startBtn.setStyle(
                 "-fx-background-color: #E94560; " +
@@ -248,13 +248,13 @@ public class SceneManager {
                 "-fx-cursor: hand;"
         );
 
-        Button backBtn = createMenuButton("返回选择");
+        Button backBtn = createMenuButton("Back");
         backBtn.setOnAction(e -> showLevelSelect());
 
         buttonBox.getChildren().addAll(startBtn, backBtn);
 
         // 提示文字
-        Label tipLabel = new Label("按 Enter 键快速开始");
+        Label tipLabel = new Label("Press Enter to start quickly");
         tipLabel.setFont(Font.font("Arial", FontWeight.NORMAL, 14));
         tipLabel.setTextFill(Color.GRAY);
 
@@ -312,10 +312,10 @@ public class SceneManager {
 
         // 元素类型标签
         String typeText = switch (element.type()) {
-            case ENEMY -> "[敌人]";
-            case ITEM -> "[道具]";
-            case TERRAIN -> "[地形]";
-            case MECHANIC -> "[机制]";
+            case ENEMY -> "[Enemy]";
+            case ITEM -> "[Item]";
+            case TERRAIN -> "[Terrain]";
+            case MECHANIC -> "[Mechanic]";
         };
         Label typeLabel = new Label(typeText);
         typeLabel.setFont(Font.font("Arial", FontWeight.BOLD, 12));
@@ -551,7 +551,7 @@ public class SceneManager {
         layout.setBackground(new Background(new BackgroundFill(
                 Color.web("#1A1A2E"), CornerRadii.EMPTY, Insets.EMPTY)));
         
-        Label titleLabel = new Label("关卡 " + level + " 通过！");
+        Label titleLabel = new Label("Level " + level + " Complete!");
         titleLabel.setFont(Font.font("Arial", FontWeight.BOLD, 48));
         titleLabel.setTextFill(Color.LIMEGREEN);
         
@@ -566,15 +566,15 @@ public class SceneManager {
             layout.getChildren().add(storyLabel);
         }
         
-        Button nextLevelBtn = createMenuButton("下一关");
+        Button nextLevelBtn = createMenuButton("Next Level");
         nextLevelBtn.setOnAction(e -> startLevel(level + 1));
-        
-        Button selectBtn = createMenuButton("选择关卡");
+
+        Button selectBtn = createMenuButton("Select Level");
         selectBtn.setOnAction(e -> showLevelSelect());
-        
-        Button menuBtn = createMenuButton("返回主菜单");
+
+        Button menuBtn = createMenuButton("Back to Menu");
         menuBtn.setOnAction(e -> showMenu());
-        
+
         layout.getChildren().addAll(titleLabel, createSpacer(20), nextLevelBtn, selectBtn, menuBtn);
         
         Scene scene = new Scene(layout, Constants.WINDOW_WIDTH, Constants.WINDOW_HEIGHT);
@@ -591,21 +591,21 @@ public class SceneManager {
         layout.setBackground(new Background(new BackgroundFill(
                 Color.web("#1A1A2E"), CornerRadii.EMPTY, Insets.EMPTY)));
         
-        Label titleLabel = new Label("游戏结束");
+        Label titleLabel = new Label("Game Over");
         titleLabel.setFont(Font.font("Arial", FontWeight.BOLD, 48));
         titleLabel.setTextFill(Color.RED);
-        
-        Label levelLabel = new Label("在第 " + level + " 关失败");
+
+        Label levelLabel = new Label("Failed at Level " + level);
         levelLabel.setFont(Font.font("Arial", FontWeight.NORMAL, 24));
         levelLabel.setTextFill(Color.LIGHTGRAY);
-        
-        Button retryBtn = createMenuButton("重新挑战");
+
+        Button retryBtn = createMenuButton("Retry");
         retryBtn.setOnAction(e -> startLevel(level));
-        
-        Button selectBtn = createMenuButton("选择关卡");
+
+        Button selectBtn = createMenuButton("Select Level");
         selectBtn.setOnAction(e -> showLevelSelect());
-        
-        Button menuBtn = createMenuButton("返回主菜单");
+
+        Button menuBtn = createMenuButton("Back to Menu");
         menuBtn.setOnAction(e -> showMenu());
         
         layout.getChildren().addAll(titleLabel, levelLabel, createSpacer(20), retryBtn, selectBtn, menuBtn);
@@ -623,18 +623,18 @@ public class SceneManager {
         layout.setBackground(new Background(new BackgroundFill(
                 Color.web("#1A1A2E"), CornerRadii.EMPTY, Insets.EMPTY)));
         
-        Label titleLabel = new Label("🎉 恭喜通关！ 🎉");
+        Label titleLabel = new Label("Congratulations!");
         titleLabel.setFont(Font.font("Arial", FontWeight.BOLD, 48));
         titleLabel.setTextFill(Color.GOLD);
-        
-        Label msgLabel = new Label("你已经完成了所有30个关卡！");
+
+        Label msgLabel = new Label("You've completed all 30 levels!");
         msgLabel.setFont(Font.font("Arial", FontWeight.NORMAL, 24));
         msgLabel.setTextFill(Color.WHITE);
-        
-        Button selectBtn = createMenuButton("再次挑战");
+
+        Button selectBtn = createMenuButton("Play Again");
         selectBtn.setOnAction(e -> showLevelSelect());
-        
-        Button menuBtn = createMenuButton("返回主菜单");
+
+        Button menuBtn = createMenuButton("Back to Menu");
         menuBtn.setOnAction(e -> showMenu());
         
         layout.getChildren().addAll(titleLabel, msgLabel, createSpacer(20), selectBtn, menuBtn);
@@ -749,12 +749,12 @@ public class SceneManager {
      */
     private String getChapterStory(int level) {
         return switch (level) {
-            case 1 -> "迷宫中似乎有什么东西在蠢蠢欲动...";
-            case 6 -> "第一章完成！\n「一只饥饿的小精灵闯入了神秘迷宫，听说吃完所有金豆就能获得宝藏……但迷宫的守护者们不会让他轻易得逞。」";
-            case 12 -> "第二章完成！\n「迷宫深处，地面开始变得诡异——有的地方寒冰刺骨，有的地方脚下生风……」";
-            case 18 -> "第三章完成！\n「迷宫中散落着古老的魔法道具，善用它们，或许能扭转乾坤……」";
-            case 24 -> "第四章完成！\n「暗影中潜伏着看不见的猎手，它们时隐时现，令人防不胜防……」";
-            case 30 -> "最终章完成！\n「迷宫的最深处，所有危险汇聚于此。你已经证明了自己是真正的勇者！」";
+            case 1 -> "Something stirs in the maze...";
+            case 6 -> "Chapter 1 Complete!\n\"A hungry little spirit stumbled into the mysterious maze. Collect all the dots to find the treasure... but the guardians won't make it easy.\"";
+            case 12 -> "Chapter 2 Complete!\n\"Deep in the maze, the ground becomes treacherous - icy floors and speed zones await...\"";
+            case 18 -> "Chapter 3 Complete!\n\"Ancient magical items are scattered throughout the maze. Use them wisely to turn the tide...\"";
+            case 24 -> "Chapter 4 Complete!\n\"Invisible hunters lurk in the shadows, appearing and disappearing without warning...\"";
+            case 30 -> "Final Chapter Complete!\n\"In the depths of the maze, all dangers converge. You have proven yourself a true hero!\"";
             default -> null;
         };
     }

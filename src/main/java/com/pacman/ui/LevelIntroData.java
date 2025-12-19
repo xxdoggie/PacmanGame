@@ -84,208 +84,208 @@ public class LevelIntroData {
         List<NewElement> elements = new ArrayList<>();
         elements.add(new NewElement(
                 ElementType.MECHANIC,
-                "基础操作",
-                "使用 WASD 或方向键移动吃豆人",
-                "收集迷宫中所有的金豆即可通关！",
+                "Basic Controls",
+                "Use WASD or arrow keys to move Pac-Man",
+                "Collect all dots in the maze to clear the level!",
                 Constants.COLOR_PLAYER,
                 "player"
         ));
-        return new LevelIntro(1, "第一章：入门", "欢迎来到迷宫世界！", elements);
+        return new LevelIntro(1, "Chapter 1: Getting Started", "Welcome to the Maze World!", elements);
     }
 
     private static LevelIntro createLevel2Intro() {
         List<NewElement> elements = new ArrayList<>();
         elements.add(new NewElement(
                 ElementType.ENEMY,
-                "追踪者",
-                "红色幽灵，会直线追踪你的位置",
-                "它会选择最短路径接近你，但它的移动速度比你稍慢些。记住，它只有在到达路口时才会进行下一次追踪，利用好这个机制甩开它吧！",
+                "Chaser",
+                "Red ghost that directly pursues your position",
+                "It takes the shortest path to you, but moves slightly slower. It only recalculates at intersections - use this to shake it off!",
                 Constants.COLOR_CHASER,
                 "chaser"
         ));
-        return new LevelIntro(2, "新敌人登场", "迷宫的守护者出现了...", elements);
+        return new LevelIntro(2, "New Enemy Appears", "The maze guardians have arrived...", elements);
     }
 
     private static LevelIntro createLevel3Intro() {
         List<NewElement> elements = new ArrayList<>();
         elements.add(new NewElement(
                 ElementType.ENEMY,
-                "游荡者",
-                "橙色幽灵，在迷宫中随机移动",
-                "它的行动不可预测，注意观察它的移动方向！",
+                "Wanderer",
+                "Orange ghost that moves randomly through the maze",
+                "Its movement is unpredictable - watch its direction carefully!",
                 Constants.COLOR_WANDERER,
                 "wanderer"
         ));
-        return new LevelIntro(3, "新敌人登场", "更多守护者加入战斗...", elements);
+        return new LevelIntro(3, "New Enemy Appears", "More guardians join the battle...", elements);
     }
 
     private static LevelIntro createLevel4Intro() {
         List<NewElement> elements = new ArrayList<>();
         elements.add(new NewElement(
                 ElementType.TERRAIN,
-                "传送门",
-                "紫色入口，进入后传送到配对的出口",
-                "利用传送门甩开追踪者，规划好逃脱路线！",
+                "Portal",
+                "Purple entrance that teleports you to its paired exit",
+                "Use portals to escape chasers - plan your escape route!",
                 Constants.COLOR_PORTAL,
                 "portal"
         ));
-        return new LevelIntro(4, "空间跳跃", "神秘的传送门出现了...", elements);
+        return new LevelIntro(4, "Space Jump", "Mysterious portals have appeared...", elements);
     }
 
     private static LevelIntro createLevel5Intro() {
         List<NewElement> elements = new ArrayList<>();
         elements.add(new NewElement(
                 ElementType.TERRAIN,
-                "单向通道",
-                "青色箭头地板，只能朝箭头方向通过",
-                "规划路线，利用单向通道！一旦通过就无法原路返回！",
+                "One-Way Passage",
+                "Cyan arrow floor - can only pass in the arrow's direction",
+                "Plan your route using one-way passages! Once through, there's no going back!",
                 Constants.COLOR_ONE_WAY,
                 "oneway"
         ));
-        return new LevelIntro(5, "单向之路", "规划路线，利用单向道...", elements);
+        return new LevelIntro(5, "One-Way Path", "Plan your route with one-way passages...", elements);
     }
 
     private static LevelIntro createLevel7Intro() {
         List<NewElement> elements = new ArrayList<>();
         elements.add(new NewElement(
                 ElementType.TERRAIN,
-                "冰面",
-                "浅蓝色地板，踏上后会持续滑行",
-                "学会在冰面控制惯性，提前规划好路线！",
+                "Ice Floor",
+                "Light blue floor - you'll keep sliding when stepping on it",
+                "Learn to control momentum on ice and plan your route ahead!",
                 Constants.COLOR_ICE,
                 "ice"
         ));
-        return new LevelIntro(7, "第二章：危险地形", "迷宫深处，地面变得诡异...", elements);
+        return new LevelIntro(7, "Chapter 2: Dangerous Terrain", "Deep in the maze, the ground becomes treacherous...", elements);
     }
 
     private static LevelIntro createLevel8Intro() {
         List<NewElement> elements = new ArrayList<>();
         elements.add(new NewElement(
                 ElementType.ENEMY,
-                "巡逻者",
-                "绿色幽灵，沿固定路线来回巡逻",
-                "观察巡逻路线找空隙，记住它的巡逻路线！",
+                "Patroller",
+                "Green ghost that patrols back and forth along a fixed route",
+                "Watch for gaps in the patrol route - memorize its pattern!",
                 Constants.COLOR_PATROLLER,
                 "patroller"
         ));
-        return new LevelIntro(8, "巡逻者登场", "固定路线的守卫出现了...", elements);
+        return new LevelIntro(8, "Patroller Appears", "Guards with fixed routes have appeared...", elements);
     }
 
     private static LevelIntro createLevel9Intro() {
         List<NewElement> elements = new ArrayList<>();
         elements.add(new NewElement(
                 ElementType.TERRAIN,
-                "加速带",
-                "橙色地板，经过时速度提升80%",
-                "利用加速带快速通过危险区域！",
+                "Speed Boost",
+                "Orange floor - 80% speed increase when passing through",
+                "Use speed boosts to quickly pass through dangerous areas!",
                 Constants.COLOR_SPEED_UP,
                 "speedup"
         ));
-        return new LevelIntro(9, "加速通道", "脚下生风的地带...", elements);
+        return new LevelIntro(9, "Speed Zone", "A place where the wind moves your feet...", elements);
     }
 
     private static LevelIntro createLevel10Intro() {
         List<NewElement> elements = new ArrayList<>();
         elements.add(new NewElement(
                 ElementType.TERRAIN,
-                "减速带",
-                "棕色地板，经过时速度降低50%",
-                "避开减速带，或引敌人进入减速带！",
+                "Slowdown Zone",
+                "Brown floor - 50% speed reduction when passing through",
+                "Avoid slowdown zones, or lure enemies into them!",
                 Constants.COLOR_SLOW_DOWN,
                 "slowdown"
         ));
-        return new LevelIntro(10, "减速陷阱", "寒冰刺骨的地带...", elements);
+        return new LevelIntro(10, "Slowdown Trap", "A bone-chilling area...", elements);
     }
 
     private static LevelIntro createLevel11Intro() {
         List<NewElement> elements = new ArrayList<>();
         elements.add(new NewElement(
                 ElementType.TERRAIN,
-                "跳板",
-                "绿色地板，踏上后会跳跃前进2格",
-                "用跳板甩掉追踪者，快速穿越危险区域！",
+                "Jump Pad",
+                "Green floor - jump 2 tiles forward when stepping on it",
+                "Use jump pads to shake off chasers and quickly cross danger zones!",
                 Constants.COLOR_JUMP_PAD,
                 "jumppad"
         ));
-        return new LevelIntro(11, "跳跃逃脱", "弹跳的机关出现了...", elements);
+        return new LevelIntro(11, "Jump Escape", "Bouncy mechanisms have appeared...", elements);
     }
 
     private static LevelIntro createLevel13Intro() {
         List<NewElement> elements = new ArrayList<>();
         elements.add(new NewElement(
                 ElementType.ITEM,
-                "磁铁",
-                "银色道具，自动吸收3格范围内的豆子",
-                "持续5秒，可以快速收集大量豆子！",
+                "Magnet",
+                "Silver item - automatically attracts dots within 3 tiles",
+                "Lasts 5 seconds - quickly collect lots of dots!",
                 Constants.COLOR_ITEM_MAGNET,
                 "magnet"
         ));
-        return new LevelIntro(13, "第三章：道具大师", "古老的魔法道具出现了...", elements);
+        return new LevelIntro(13, "Chapter 3: Item Master", "Ancient magical items have appeared...", elements);
     }
 
     private static LevelIntro createLevel14Intro() {
         List<NewElement> elements = new ArrayList<>();
         elements.add(new NewElement(
                 ElementType.ENEMY,
-                "猎手",
-                "橙红色幽灵，平时移动速度缓慢但看到你时会发起长达2秒的冲刺",
-                "学会躲避猎手的视线，被发现时它的速度会暴增！",
+                "Hunter",
+                "Orange-red ghost - slow normally but charges for 2 seconds when it spots you",
+                "Learn to avoid the hunter's line of sight - its speed skyrockets when you're spotted!",
                 Constants.COLOR_HUNTER,
                 "hunter"
         ));
-        return new LevelIntro(14, "猎手来袭", "危险的视线追踪者出现了...", elements);
+        return new LevelIntro(14, "Hunter Attacks", "A dangerous line-of-sight tracker has appeared...", elements);
     }
 
     private static LevelIntro createLevel15Intro() {
         List<NewElement> elements = new ArrayList<>();
         elements.add(new NewElement(
                 ElementType.ITEM,
-                "护盾",
-                "蓝色道具，可抵挡一次敌人攻击",
-                "护盾不可叠加，拥有护盾时再次拾取护盾不能抵挡多次攻击。",
+                "Shield",
+                "Blue item - blocks one enemy attack",
+                "Shields don't stack - picking up another while shielded won't give extra protection.",
                 Constants.COLOR_ITEM_SHIELD,
                 "shield"
         ));
-        return new LevelIntro(15, "防护之力", "保护自己免受伤害...", elements);
+        return new LevelIntro(15, "Protective Power", "Protect yourself from harm...", elements);
     }
 
     private static LevelIntro createLevel16Intro() {
         List<NewElement> elements = new ArrayList<>();
         elements.add(new NewElement(
                 ElementType.TERRAIN,
-                "致盲陷阱",
-                "深紫色地板，踏入后视野受限",
-                "记住地图，避开陷阱！视野缩小到3格范围，持续2秒！",
+                "Blind Trap",
+                "Dark purple floor - vision becomes limited when stepped on",
+                "Memorize the map and avoid traps! Vision shrinks to 3-tile range for 2 seconds!",
                 Constants.COLOR_BLIND_TRAP,
                 "blindtrap"
         ));
-        return new LevelIntro(16, "盲区危机", "黑暗笼罩着迷宫...", elements);
+        return new LevelIntro(16, "Blind Zone Crisis", "Darkness shrouds the maze...", elements);
     }
 
     private static LevelIntro createLevel17Intro() {
         List<NewElement> elements = new ArrayList<>();
         elements.add(new NewElement(
                 ElementType.ITEM,
-                "穿墙术",
-                "金色道具，短暂时间内可穿越墙壁",
-                "用穿墙创造逃生路线，持续3秒！",
+                "Wall Pass",
+                "Gold item - temporarily allows passing through walls",
+                "Create escape routes through walls - lasts 3 seconds!",
                 Constants.COLOR_ITEM_WALL_PASS,
                 "wallpass"
         ));
-        return new LevelIntro(17, "穿墙逃脱", "穿越障碍的魔法...", elements);
+        return new LevelIntro(17, "Wall Pass Escape", "Magic to cross obstacles...", elements);
     }
 
     private static LevelIntro createLevel19Intro() {
         List<NewElement> elements = new ArrayList<>();
         elements.add(new NewElement(
                 ElementType.ENEMY,
-                "幻影",
-                "紫色幽灵，会周期性隐身",
-                "它每3秒隐身1.5秒，隐身时移动速度稍微加快并追踪玩家",
+                "Phantom",
+                "Purple ghost that periodically becomes invisible",
+                "Goes invisible for 1.5s every 3s - moves faster and tracks you while invisible",
                 Constants.COLOR_PHANTOM,
                 "phantom"
         ));
-        return new LevelIntro(19, "第四章：暗影追踪", "看不见的猎手潜伏在暗处...", elements);
+        return new LevelIntro(19, "Chapter 4: Shadow Pursuit", "Invisible hunters lurk in the darkness...", elements);
     }
 
 
