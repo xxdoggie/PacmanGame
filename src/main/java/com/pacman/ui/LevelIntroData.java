@@ -65,12 +65,6 @@ public class LevelIntroData {
             case 16 -> createLevel16Intro();
             case 17 -> createLevel17Intro();
             case 19 -> createLevel19Intro();
-            case 25 -> createLevel25Intro();
-            case 26 -> createLevel26Intro();
-            case 27 -> createLevel27Intro();
-            case 28 -> createLevel28Intro();
-            case 29 -> createLevel29Intro();
-            case 30 -> createLevel30Intro();
             default -> null;
         };
     }
@@ -234,7 +228,7 @@ public class LevelIntroData {
         elements.add(new NewElement(
                 ElementType.ENEMY,
                 "猎手",
-                "橙红色幽灵，平时缓慢但看到你时会冲刺",
+                "橙红色幽灵，平时移动速度缓慢但看到你时会发起长达2秒的冲刺",
                 "学会躲避猎手的视线，被发现时它的速度会暴增！",
                 Constants.COLOR_HUNTER,
                 "hunter"
@@ -248,7 +242,7 @@ public class LevelIntroData {
                 ElementType.ITEM,
                 "护盾",
                 "蓝色道具，可抵挡一次敌人攻击",
-                "关键时刻用护盾保命！在危险区域行动前先拾取护盾！",
+                "护盾不可叠加，拥有护盾时再次拾取护盾不能抵挡多次攻击。",
                 Constants.COLOR_ITEM_SHIELD,
                 "shield"
         ));
@@ -287,90 +281,12 @@ public class LevelIntroData {
                 ElementType.ENEMY,
                 "幻影",
                 "紫色幽灵，会周期性隐身",
-                "它每3秒隐身1.5秒，隐身时仍然危险！",
+                "它每3秒隐身1.5秒，隐身时移动速度稍微加快并追踪玩家",
                 Constants.COLOR_PHANTOM,
                 "phantom"
         ));
         return new LevelIntro(19, "第四章：暗影追踪", "看不见的猎手潜伏在暗处...", elements);
     }
 
-    // ==================== 第五章：终极试炼 ====================
 
-    private static LevelIntro createLevel25Intro() {
-        List<NewElement> elements = new ArrayList<>();
-        elements.add(new NewElement(
-                ElementType.MECHANIC,
-                "全冰面地图",
-                "整个迷宫都是冰面！",
-                "极限操控挑战，在滑溜的地面上精准控制方向！",
-                Constants.COLOR_ICE,
-                "ice"
-        ));
-        return new LevelIntro(25, "第五章：终极试炼", "最终的考验开始了...", elements);
-    }
-
-    private static LevelIntro createLevel26Intro() {
-        List<NewElement> elements = new ArrayList<>();
-        elements.add(new NewElement(
-                ElementType.MECHANIC,
-                "大量传送门",
-                "迷宫中布满了传送门！",
-                "空间感挑战，记住每对传送门的位置！",
-                Constants.COLOR_PORTAL,
-                "portal"
-        ));
-        return new LevelIntro(26, "空间迷阵", "传送门编织的迷宫...", elements);
-    }
-
-    private static LevelIntro createLevel27Intro() {
-        List<NewElement> elements = new ArrayList<>();
-        elements.add(new NewElement(
-                ElementType.MECHANIC,
-                "致盲陷阱密集",
-                "到处都是致盲陷阱！",
-                "记忆力挑战，熟记地图再行动！",
-                Constants.COLOR_BLIND_TRAP,
-                "blindtrap"
-        ));
-        return new LevelIntro(27, "黑暗迷宫", "视野的极限考验...", elements);
-    }
-
-    private static LevelIntro createLevel28Intro() {
-        List<NewElement> elements = new ArrayList<>();
-        elements.add(new NewElement(
-                ElementType.MECHANIC,
-                "几乎无道具",
-                "没有道具可以依靠！",
-                "纯走位挑战，只能靠技术取胜！",
-                Constants.COLOR_PLAYER,
-                "player"
-        ));
-        return new LevelIntro(28, "孤身奋战", "没有援助的战斗...", elements);
-    }
-
-    private static LevelIntro createLevel29Intro() {
-        List<NewElement> elements = new ArrayList<>();
-        elements.add(new NewElement(
-                ElementType.MECHANIC,
-                "道具丰富但敌人多",
-                "大量道具，但敌人也更多！",
-                "资源管理挑战，合理使用每个道具！",
-                Constants.COLOR_ITEM_MAGNET,
-                "magnet"
-        ));
-        return new LevelIntro(29, "资源争夺", "道具与危机并存...", elements);
-    }
-
-    private static LevelIntro createLevel30Intro() {
-        List<NewElement> elements = new ArrayList<>();
-        elements.add(new NewElement(
-                ElementType.MECHANIC,
-                "最终融合",
-                "所有元素的终极组合！",
-                "所有元素终极考验，全种类敌人各2只，展现你的全部实力！",
-                Constants.COLOR_PLAYER,
-                "player"
-        ));
-        return new LevelIntro(30, "终极试炼", "迷宫的终极挑战！", elements);
-    }
 }
