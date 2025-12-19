@@ -47,6 +47,9 @@ public class Game {
     private Label timeLabel;
     private Label livesLabel;
     private VBox pauseOverlay;
+
+    /** 碰撞冷却时间（防止连续扣血） */
+    private double collisionCooldown;
     
     public Game(int levelNumber) {
         this.currentLevel = levelNumber;
@@ -55,7 +58,8 @@ public class Game {
         this.gameTime = 0;
         this.countdown = 3;
         this.countdownTimer = 0;
-        
+        this.collisionCooldown = 0;
+
         initializeGame();
         createScene();
     }
@@ -163,6 +167,9 @@ public class Game {
         scene.setOnKeyPressed(event -> {
             KeyCode code = event.getCode();
 
+            // 日志：记录所有按键事件
+            System.out.println("[键盘输入] 按键: " + code + ", 游戏状态: " + state);
+
             // 消费方向键和WASD事件，防止被用于焦点遍历
             if (code == KeyCode.UP || code == KeyCode.DOWN ||
                 code == KeyCode.LEFT || code == KeyCode.RIGHT ||
@@ -180,17 +187,24 @@ public class Game {
                 Direction dir = null;
                 if (code == KeyCode.W || code == KeyCode.UP) {
                     dir = Direction.UP;
+                    System.out.println("[键盘输入] 识别为方向: UP (W或↑)");
                 } else if (code == KeyCode.S || code == KeyCode.DOWN) {
                     dir = Direction.DOWN;
+                    System.out.println("[键盘输入] 识别为方向: DOWN (S或↓)");
                 } else if (code == KeyCode.A || code == KeyCode.LEFT) {
                     dir = Direction.LEFT;
+                    System.out.println("[键盘输入] 识别为方向: LEFT (A或←)");
                 } else if (code == KeyCode.D || code == KeyCode.RIGHT) {
                     dir = Direction.RIGHT;
+                    System.out.println("[键盘输入] 识别为方向: RIGHT (D或→)");
                 }
 
                 if (dir != null) {
+                    System.out.println("[键盘输入] 设置玩家方向: " + dir);
                     player.setNextDirection(dir);
                 }
+            } else {
+                System.out.println("[键盘输入] 游戏状态不是PLAYING或COUNTDOWN，忽略方向键");
             }
         });
     }
@@ -253,25 +267,32 @@ public class Game {
     
     private void updatePlaying(double deltaTime) {
         gameTime += deltaTime;
-        
+
+        // 更新碰撞冷却时间
+        if (collisionCooldown > 0) {
+            collisionCooldown -= deltaTime;
+        }
+
         player.update(deltaTime);
         gameMap.update(player, deltaTime);
-        
-        if (gameMap.checkEnemyCollision(player)) {
+
+        // 只有在冷却时间结束后才检测碰撞
+        if (collisionCooldown <= 0 && gameMap.checkEnemyCollision(player)) {
             lives--;
             livesLabel.setText("生命: " + lives);
-            
+            // 设置1.5秒的碰撞冷却时间，防止连续扣血
+            collisionCooldown = 1.5;
+
             if (lives <= 0) {
                 onGameOver();
-            } else {
-                resetPlayerPosition();
             }
+            // 不再回到出生点，继续游戏
         }
-        
+
         if (gameMap.allDotsCollected()) {
             onLevelComplete();
         }
-        
+
         dotsLabel.setText("豆子: " + gameMap.getRemainingDots());
         timeLabel.setText(String.format("时间: %.1fs", gameTime));
     }
