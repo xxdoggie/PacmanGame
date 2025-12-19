@@ -168,9 +168,6 @@ public class Game {
         scene.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             KeyCode code = event.getCode();
 
-            // 日志：记录所有按键事件
-            System.out.println("[键盘输入] 按键: " + code + ", 游戏状态: " + state);
-
             // 消费方向键和WASD事件，防止被用于焦点遍历
             if (code == KeyCode.UP || code == KeyCode.DOWN ||
                 code == KeyCode.LEFT || code == KeyCode.RIGHT ||
@@ -188,24 +185,17 @@ public class Game {
                 Direction dir = null;
                 if (code == KeyCode.W || code == KeyCode.UP) {
                     dir = Direction.UP;
-                    System.out.println("[键盘输入] 识别为方向: UP (W或↑)");
                 } else if (code == KeyCode.S || code == KeyCode.DOWN) {
                     dir = Direction.DOWN;
-                    System.out.println("[键盘输入] 识别为方向: DOWN (S或↓)");
                 } else if (code == KeyCode.A || code == KeyCode.LEFT) {
                     dir = Direction.LEFT;
-                    System.out.println("[键盘输入] 识别为方向: LEFT (A或←)");
                 } else if (code == KeyCode.D || code == KeyCode.RIGHT) {
                     dir = Direction.RIGHT;
-                    System.out.println("[键盘输入] 识别为方向: RIGHT (D或→)");
                 }
 
                 if (dir != null) {
-                    System.out.println("[键盘输入] 设置玩家方向: " + dir);
                     player.setNextDirection(dir);
                 }
-            } else {
-                System.out.println("[键盘输入] 游戏状态不是PLAYING或COUNTDOWN，忽略方向键");
             }
         });
     }
@@ -222,10 +212,7 @@ public class Game {
     
     public void start() {
         lastFrameTime = System.nanoTime();
-
-        // 请求焦点，确保键盘事件能被接收
         mainLayout.requestFocus();
-        System.out.println("[游戏] 游戏开始，已请求键盘焦点");
 
         gameLoop = new AnimationTimer() {
             @Override
