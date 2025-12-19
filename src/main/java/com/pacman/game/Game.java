@@ -163,9 +163,11 @@ public class Game {
         scene.setOnKeyPressed(event -> {
             KeyCode code = event.getCode();
 
-            // 消费方向键事件，防止被用于焦点遍历
+            // 消费方向键和WASD事件，防止被用于焦点遍历
             if (code == KeyCode.UP || code == KeyCode.DOWN ||
-                code == KeyCode.LEFT || code == KeyCode.RIGHT) {
+                code == KeyCode.LEFT || code == KeyCode.RIGHT ||
+                code == KeyCode.W || code == KeyCode.A ||
+                code == KeyCode.S || code == KeyCode.D) {
                 event.consume();
             }
 
@@ -278,10 +280,9 @@ public class Game {
         player.setGridX(gameMap.getSpawnX());
         player.setGridY(gameMap.getSpawnY());
         player.setDirection(Direction.NONE);
-        
-        state = GameState.COUNTDOWN;
-        countdown = 3;
-        countdownTimer = 0;
+
+        // 复活时不暂停游戏，直接继续（保持PLAYING状态）
+        // 只有游戏开始时才进入COUNTDOWN状态
     }
     
     private void restartLevel() {
