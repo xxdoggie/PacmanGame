@@ -95,7 +95,7 @@ public class LevelIntroData {
                 ElementType.ENEMY,
                 "追踪者",
                 "红色幽灵，会直线追踪你的位置",
-                "它会选择最短路径接近你，保持移动避免被追上！",
+                "它会选择最短路径接近你，但它的移动速度比你稍慢些。记住，它只有在到达路口时才会进行下一次追踪，利用好这个机制甩开它吧！",
                 Constants.COLOR_CHASER,
                 "chaser"
         ));
