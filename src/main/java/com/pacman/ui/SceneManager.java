@@ -231,6 +231,7 @@ public class SceneManager {
         scrollPane.setMaxHeight(350);
         scrollPane.setStyle("-fx-background: #1A1A2E; -fx-background-color: #1A1A2E;");
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
 
         // 按钮区域
         HBox buttonBox = new HBox(20);
