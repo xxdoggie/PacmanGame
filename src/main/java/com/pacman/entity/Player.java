@@ -235,6 +235,12 @@ public class Player extends Entity {
             return;
         }
 
+        // 如果预输入方向和当前方向相同，直接清除预输入，不执行对齐
+        if (nextDirection == direction) {
+            nextDirection = Direction.NONE;
+            return;
+        }
+
         // 检查是否接近格子中心
         double centerDist = Math.abs(gridX - Math.round(gridX)) + Math.abs(gridY - Math.round(gridY));
         if (centerDist < 0.15) {
