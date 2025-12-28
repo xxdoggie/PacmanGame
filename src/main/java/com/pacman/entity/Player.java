@@ -4,7 +4,9 @@ import com.pacman.item.ItemType;
 import com.pacman.map.GameMap;
 import com.pacman.util.Constants;
 import com.pacman.util.Direction;
+import com.pacman.util.SkinManager;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 
 import java.util.HashMap;
@@ -15,38 +17,38 @@ import java.util.Map;
  * 继承自Entity，实现玩家的移动、道具效果等功能
  */
 public class Player extends Entity {
-    
+
     /** 玩家想要移动的方向（用于预输入） */
     private Direction nextDirection;
-    
+
     /** 当前激活的道具效果及其剩余时间 */
     private Map<ItemType, Double> activeEffects;
-    
+
     /** 是否有护盾 */
     private boolean hasShield;
-    
+
     /** 是否处于跳跃状态 */
     private boolean isJumping;
-    
+
     /** 跳跃目标位置 */
     private double jumpTargetX;
     private double jumpTargetY;
-    
+
     /** 跳跃进度（0-1） */
     private double jumpProgress;
-    
+
     /** 是否处于致盲状态 */
     private boolean isBlinded;
-    
+
     /** 致盲剩余时间 */
     private double blindTimer;
-    
+
     /** 当前速度修正系数 */
     private double speedModifier;
-    
+
     /** 是否在冰面上滑行 */
     private boolean onIce;
-    
+
     /** 冰面滑行时的惯性方向 */
     private Direction iceDirection;
 
@@ -61,7 +63,7 @@ public class Player extends Entity {
 
     /** 游戏地图引用 */
     private GameMap gameMap;
-    
+
     /**
      * 构造函数
      * @param gridX 初始X坐标
@@ -80,11 +82,11 @@ public class Player extends Entity {
         this.speedModifier = 1.0;
         this.onIce = false;
         this.iceDirection = Direction.NONE;
-        this.lastFacingDirection = Direction.RIGHT;
+        this.lastFacingDirection = Direction.DOWN; // 默认朝下
         this.portalCooldown = 0;
         this.invincibleTimer = 0;
     }
-    
+
     /**
      * 设置游戏地图引用
      * @param gameMap 游戏地图
@@ -92,7 +94,7 @@ public class Player extends Entity {
     public void setGameMap(GameMap gameMap) {
         this.gameMap = gameMap;
     }
-    
+
     @Override
     public void update(double deltaTime) {
         // 更新道具效果计时器
@@ -116,16 +118,16 @@ public class Player extends Entity {
                 blindTimer = 0;
             }
         }
-        
+
         // 处理跳跃状态
         if (isJumping) {
             updateJump(deltaTime);
             return;
         }
-        
+
         // 计算实际速度
         double actualSpeed = speed * speedModifier;
-        
+
         // 尝试切换到预输入的方向（在移动之前检查）
         tryChangeDirection();
 
@@ -189,18 +191,18 @@ public class Player extends Entity {
                 }
             }
         }
-        
+
         // 重置速度修正
         speedModifier = 1.0;
     }
-    
+
     /**
      * 更新跳跃状态
      * @param deltaTime 时间间隔
      */
     private void updateJump(double deltaTime) {
         jumpProgress += deltaTime * 3; // 跳跃速度
-        
+
         if (jumpProgress >= 1.0) {
             // 跳跃完成
             gridX = jumpTargetX;
@@ -209,7 +211,7 @@ public class Player extends Entity {
             jumpProgress = 0;
         }
     }
-    
+
     /**
      * 开始跳跃
      * @param targetX 目标X坐标
@@ -221,7 +223,7 @@ public class Player extends Entity {
         jumpTargetY = targetY;
         jumpProgress = 0;
     }
-    
+
     /**
      * 尝试切换到预输入的方向
      */
@@ -261,7 +263,7 @@ public class Player extends Entity {
             }
         }
     }
-    
+
     /**
      * 对齐到格子中心
      */
@@ -269,7 +271,7 @@ public class Player extends Entity {
         gridX = Math.round(gridX);
         gridY = Math.round(gridY);
     }
-    
+
     /**
      * 处理地图边界（用于传送门等）
      */
@@ -279,7 +281,7 @@ public class Player extends Entity {
         if (gridY < 0) gridY = Constants.MAP_ROWS - 1;
         if (gridY >= Constants.MAP_ROWS) gridY = 0;
     }
-    
+
     /**
      * 更新道具效果计时器
      * @param deltaTime 时间间隔
@@ -295,7 +297,7 @@ public class Player extends Entity {
             return false;
         });
     }
-    
+
     /**
      * 道具效果结束时的处理
      * @param type 道具类型
@@ -348,7 +350,7 @@ public class Player extends Entity {
         }
         return null;
     }
-    
+
     /**
      * 添加道具效果
      * @param type 道具类型
@@ -361,7 +363,7 @@ public class Player extends Entity {
             activeEffects.put(type, duration);
         }
     }
-    
+
     /**
      * 检查是否有某个道具效果
      * @param type 道具类型
@@ -373,7 +375,7 @@ public class Player extends Entity {
         }
         return activeEffects.containsKey(type);
     }
-    
+
     /**
      * 消耗护盾
      * @return 是否成功消耗护盾
@@ -395,7 +397,7 @@ public class Player extends Entity {
     public boolean isInvincible() {
         return invincibleTimer > 0;
     }
-    
+
     /**
      * 应用致盲效果
      * @param duration 持续时间
@@ -404,7 +406,7 @@ public class Player extends Entity {
         isBlinded = true;
         blindTimer = duration;
     }
-    
+
     /**
      * 应用速度修正
      * @param modifier 速度修正系数
@@ -412,7 +414,7 @@ public class Player extends Entity {
     public void applySpeedModifier(double modifier) {
         this.speedModifier = modifier;
     }
-    
+
     /**
      * 设置冰面状态
      * @param onIce 是否在冰面上
@@ -439,40 +441,92 @@ public class Player extends Entity {
             this.direction = direction;
         }
     }
-    
+
     @Override
     public void render(GraphicsContext gc) {
         double pixelX = getPixelX();
         double pixelY = getPixelY();
-        
+
         // 如果在跳跃，绘制跳跃动画
         if (isJumping) {
             double startX = (gridX + 0.5) * Constants.TILE_SIZE;
             double startY = (gridY + 0.5) * Constants.TILE_SIZE;
             double endX = (jumpTargetX + 0.5) * Constants.TILE_SIZE;
             double endY = (jumpTargetY + 0.5) * Constants.TILE_SIZE;
-            
+
             // 插值位置
             pixelX = startX + (endX - startX) * jumpProgress;
             pixelY = startY + (endY - startY) * jumpProgress;
-            
+
             // 跳跃高度（抛物线）
             double jumpHeight = Math.sin(jumpProgress * Math.PI) * Constants.TILE_SIZE;
             pixelY -= jumpHeight;
         }
-        
+
         // 绘制护盾效果
         if (hasShield) {
             gc.setFill(Color.web(Constants.COLOR_ITEM_SHIELD, 0.3));
+            double shieldSize = SkinManager.getDisplaySize() * 0.6;
             gc.fillOval(
-                    pixelX - Constants.PLAYER_RADIUS - 5,
-                    pixelY - Constants.PLAYER_RADIUS - 5,
-                    (Constants.PLAYER_RADIUS + 5) * 2,
-                    (Constants.PLAYER_RADIUS + 5) * 2
+                    pixelX - shieldSize - 5,
+                    pixelY - shieldSize - 5,
+                    (shieldSize + 5) * 2,
+                    (shieldSize + 5) * 2
             );
         }
-        
-        // 绘制玩家主体
+
+        // 获取当前方向的图片
+        Direction facingDir = (direction != Direction.NONE) ? direction : lastFacingDirection;
+        Image playerImage = SkinManager.getInstance().getImage(facingDir);
+
+        if (playerImage != null) {
+            // 使用图片渲染
+            double imgWidth = playerImage.getWidth();
+            double imgHeight = playerImage.getHeight();
+
+            // 绘制玩家图片（居中）
+            gc.drawImage(
+                    playerImage,
+                    pixelX - imgWidth / 2,
+                    pixelY - imgHeight / 2
+            );
+        } else {
+            // 备用方案：使用原来的圆形渲染
+            renderFallback(gc, pixelX, pixelY, facingDir);
+        }
+
+        // 如果有穿墙效果，添加特效
+        if (hasEffect(ItemType.WALL_PASS)) {
+            gc.setStroke(Color.web(Constants.COLOR_ITEM_WALL_PASS, 0.7));
+            gc.setLineWidth(2);
+            double effectSize = SkinManager.getDisplaySize() * 0.5;
+            gc.strokeOval(
+                    pixelX - effectSize - 3,
+                    pixelY - effectSize - 3,
+                    (effectSize + 3) * 2,
+                    (effectSize + 3) * 2
+            );
+        }
+
+        // 如果有磁铁效果，显示吸引范围
+        if (hasEffect(ItemType.MAGNET)) {
+            gc.setStroke(Color.web(Constants.COLOR_ITEM_MAGNET, 0.3));
+            gc.setLineWidth(1);
+            double magnetRadius = Constants.MAGNET_RANGE * Constants.TILE_SIZE;
+            gc.strokeOval(
+                    pixelX - magnetRadius,
+                    pixelY - magnetRadius,
+                    magnetRadius * 2,
+                    magnetRadius * 2
+            );
+        }
+    }
+
+    /**
+     * 备用渲染方法（当图片加载失败时使用）
+     */
+    private void renderFallback(GraphicsContext gc, double pixelX, double pixelY, Direction facingDir) {
+        // 绘制玩家主体（黄色吃豆人）
         gc.setFill(Color.web(Constants.COLOR_PLAYER));
         gc.fillOval(
                 pixelX - Constants.PLAYER_RADIUS,
@@ -480,10 +534,9 @@ public class Player extends Entity {
                 Constants.PLAYER_RADIUS * 2,
                 Constants.PLAYER_RADIUS * 2
         );
-        
-        // 绘制嘴巴（根据方向，direction为NONE时使用lastFacingDirection）
+
+        // 绘制嘴巴
         gc.setFill(Color.web(Constants.COLOR_FLOOR));
-        Direction facingDir = (direction != Direction.NONE) ? direction : lastFacingDirection;
         double mouthAngle = switch (facingDir) {
             case RIGHT -> 0;
             case DOWN -> 90;
@@ -500,47 +553,22 @@ public class Player extends Entity {
                 60,
                 javafx.scene.shape.ArcType.ROUND
         );
-        
-        // 如果有穿墙效果，添加特效
-        if (hasEffect(ItemType.WALL_PASS)) {
-            gc.setStroke(Color.web(Constants.COLOR_ITEM_WALL_PASS, 0.7));
-            gc.setLineWidth(2);
-            gc.strokeOval(
-                    pixelX - Constants.PLAYER_RADIUS - 3,
-                    pixelY - Constants.PLAYER_RADIUS - 3,
-                    (Constants.PLAYER_RADIUS + 3) * 2,
-                    (Constants.PLAYER_RADIUS + 3) * 2
-            );
-        }
-        
-        // 如果有磁铁效果，显示吸引范围
-        if (hasEffect(ItemType.MAGNET)) {
-            gc.setStroke(Color.web(Constants.COLOR_ITEM_MAGNET, 0.3));
-            gc.setLineWidth(1);
-            double magnetRadius = Constants.MAGNET_RANGE * Constants.TILE_SIZE;
-            gc.strokeOval(
-                    pixelX - magnetRadius,
-                    pixelY - magnetRadius,
-                    magnetRadius * 2,
-                    magnetRadius * 2
-            );
-        }
     }
-    
+
     // ==================== Getter ====================
-    
+
     public boolean isJumping() {
         return isJumping;
     }
-    
+
     public boolean isBlinded() {
         return isBlinded;
     }
-    
+
     public boolean hasShield() {
         return hasShield;
     }
-    
+
     public Direction getNextDirection() {
         return nextDirection;
     }

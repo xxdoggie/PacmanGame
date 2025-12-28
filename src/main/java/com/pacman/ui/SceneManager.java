@@ -4,6 +4,9 @@ import com.pacman.game.Game;
 import com.pacman.ui.LevelIntroData.LevelIntro;
 import com.pacman.ui.LevelIntroData.NewElement;
 import com.pacman.util.Constants;
+import com.pacman.util.Direction;
+import com.pacman.util.SkinManager;
+import com.pacman.util.SkinManager.SkinType;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -12,6 +15,8 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.ArcType;
@@ -24,26 +29,26 @@ import javafx.stage.Stage;
  * 负责管理和切换游戏中的各个场景
  */
 public class SceneManager {
-    
+
     /** 单例实例 */
     private static SceneManager instance;
-    
+
     /** 主舞台 */
     private Stage primaryStage;
-    
+
     /** 游戏实例 */
     private Game game;
-    
+
     /** 当前已解锁的最大关卡 */
     // TODO: 临时解锁所有关卡用于测试，正式发布时改回 1
     private int unlockedLevel = Constants.TOTAL_LEVELS;
-    
+
     /**
      * 私有构造函数（单例模式）
      */
     private SceneManager() {
     }
-    
+
     /**
      * 获取单例实例
      * @return SceneManager实例
@@ -54,15 +59,17 @@ public class SceneManager {
         }
         return instance;
     }
-    
+
     /**
      * 初始化场景管理器
      * @param stage 主舞台
      */
     public void initialize(Stage stage) {
         this.primaryStage = stage;
+        // 预加载皮肤
+        SkinManager.getInstance();
     }
-    
+
     /**
      * 显示主菜单
      */
@@ -71,19 +78,23 @@ public class SceneManager {
         menuLayout.setAlignment(Pos.CENTER);
         menuLayout.setBackground(new Background(new BackgroundFill(
                 Color.web("#1A1A2E"), CornerRadii.EMPTY, Insets.EMPTY)));
-        
+
         // 游戏标题
         Label titleLabel = new Label("PAC-MAN");
         titleLabel.setFont(Font.font("Arial", FontWeight.BOLD, 72));
         titleLabel.setTextFill(Color.YELLOW);
-        
+
         Label subtitleLabel = new Label("ADVENTURE");
         subtitleLabel.setFont(Font.font("Arial", FontWeight.BOLD, 36));
         subtitleLabel.setTextFill(Color.web("#FFD700"));
-        
+
         // 单人模式按钮
         Button singlePlayerBtn = createMenuButton("Single Player");
         singlePlayerBtn.setOnAction(e -> showLevelSelect());
+
+        // 设置按钮
+        Button settingsBtn = createMenuButton("Settings");
+        settingsBtn.setOnAction(e -> showSettings());
 
         // 双人模式按钮（暂时禁用）
         Button multiPlayerBtn = createMenuButton("Multiplayer");
@@ -92,24 +103,215 @@ public class SceneManager {
             System.out.println("双人模式开发中...");
         });
         multiPlayerBtn.setDisable(true);
-        
+
         // 退出按钮
         Button exitBtn = createMenuButton("Exit Game");
         exitBtn.setOnAction(e -> primaryStage.close());
-        
+
         menuLayout.getChildren().addAll(
-                titleLabel, 
-                subtitleLabel, 
+                titleLabel,
+                subtitleLabel,
                 createSpacer(30),
-                singlePlayerBtn, 
-                multiPlayerBtn, 
+                singlePlayerBtn,
+                settingsBtn,
+                multiPlayerBtn,
                 exitBtn
         );
-        
+
         Scene menuScene = new Scene(menuLayout, Constants.WINDOW_WIDTH, Constants.WINDOW_HEIGHT);
         primaryStage.setScene(menuScene);
     }
-    
+
+    /**
+     * 显示设置界面
+     */
+    public void showSettings() {
+        VBox settingsLayout = new VBox(30);
+        settingsLayout.setAlignment(Pos.CENTER);
+        settingsLayout.setPadding(new Insets(40));
+        settingsLayout.setBackground(new Background(new BackgroundFill(
+                Color.web("#1A1A2E"), CornerRadii.EMPTY, Insets.EMPTY)));
+
+        // 标题
+        Label titleLabel = new Label("Settings");
+        titleLabel.setFont(Font.font("Arial", FontWeight.BOLD, 48));
+        titleLabel.setTextFill(Color.WHITE);
+
+        // 皮肤选择区域
+        VBox skinSection = createSkinSelector();
+
+        // 返回按钮
+        Button backBtn = createMenuButton("Back to Menu");
+        backBtn.setOnAction(e -> showMenu());
+
+        settingsLayout.getChildren().addAll(
+                titleLabel,
+                createSpacer(20),
+                skinSection,
+                createSpacer(30),
+                backBtn
+        );
+
+        Scene settingsScene = new Scene(settingsLayout, Constants.WINDOW_WIDTH, Constants.WINDOW_HEIGHT);
+        primaryStage.setScene(settingsScene);
+    }
+
+    /**
+     * 创建皮肤选择器组件
+     */
+    private VBox createSkinSelector() {
+        VBox skinSection = new VBox(20);
+        skinSection.setAlignment(Pos.CENTER);
+        skinSection.setPadding(new Insets(20));
+        skinSection.setStyle(
+                "-fx-background-color: #16213E; " +
+                        "-fx-background-radius: 15; " +
+                        "-fx-border-color: #0F3460; " +
+                        "-fx-border-width: 2; " +
+                        "-fx-border-radius: 15;"
+        );
+        skinSection.setMaxWidth(500);
+
+        // 皮肤选择标题
+        Label skinLabel = new Label("Player Skin");
+        skinLabel.setFont(Font.font("Arial", FontWeight.BOLD, 24));
+        skinLabel.setTextFill(Color.WHITE);
+
+        // 皮肤预览和切换区域
+        HBox skinPreviewBox = new HBox(30);
+        skinPreviewBox.setAlignment(Pos.CENTER);
+
+        // 左箭头按钮
+        Button leftArrow = createArrowButton("<");
+        leftArrow.setOnAction(e -> {
+            SkinManager.getInstance().previousSkin();
+            showSettings(); // 刷新页面
+        });
+
+        // 皮肤预览
+        VBox previewBox = createSkinPreview();
+
+        // 右箭头按钮
+        Button rightArrow = createArrowButton(">");
+        rightArrow.setOnAction(e -> {
+            SkinManager.getInstance().nextSkin();
+            showSettings(); // 刷新页面
+        });
+
+        skinPreviewBox.getChildren().addAll(leftArrow, previewBox, rightArrow);
+
+        skinSection.getChildren().addAll(skinLabel, skinPreviewBox);
+
+        return skinSection;
+    }
+
+    /**
+     * 创建皮肤预览组件
+     */
+    private VBox createSkinPreview() {
+        VBox previewBox = new VBox(15);
+        previewBox.setAlignment(Pos.CENTER);
+        previewBox.setMinWidth(200);
+
+        SkinManager skinManager = SkinManager.getInstance();
+        SkinType currentSkin = skinManager.getCurrentSkin();
+
+        // 皮肤名称
+        Label skinNameLabel = new Label(currentSkin.getDisplayName());
+        skinNameLabel.setFont(Font.font("Arial", FontWeight.BOLD, 20));
+        skinNameLabel.setTextFill(Color.GOLD);
+
+        // 四方向预览
+        GridPane directionGrid = new GridPane();
+        directionGrid.setAlignment(Pos.CENTER);
+        directionGrid.setHgap(10);
+        directionGrid.setVgap(10);
+
+        // 上
+        Image upImage = skinManager.getImage(Direction.UP);
+        if (upImage != null) {
+            ImageView upView = new ImageView(upImage);
+            upView.setFitWidth(50);
+            upView.setFitHeight(50);
+            upView.setPreserveRatio(true);
+            directionGrid.add(upView, 1, 0);
+        }
+
+        // 左
+        Image leftImage = skinManager.getImage(Direction.LEFT);
+        if (leftImage != null) {
+            ImageView leftView = new ImageView(leftImage);
+            leftView.setFitWidth(50);
+            leftView.setFitHeight(50);
+            leftView.setPreserveRatio(true);
+            directionGrid.add(leftView, 0, 1);
+        }
+
+        // 下
+        Image downImage = skinManager.getImage(Direction.DOWN);
+        if (downImage != null) {
+            ImageView downView = new ImageView(downImage);
+            downView.setFitWidth(50);
+            downView.setFitHeight(50);
+            downView.setPreserveRatio(true);
+            directionGrid.add(downView, 1, 1);
+        }
+
+        // 右
+        Image rightImage = skinManager.getImage(Direction.RIGHT);
+        if (rightImage != null) {
+            ImageView rightView = new ImageView(rightImage);
+            rightView.setFitWidth(50);
+            rightView.setFitHeight(50);
+            rightView.setPreserveRatio(true);
+            directionGrid.add(rightView, 2, 1);
+        }
+
+        previewBox.getChildren().addAll(directionGrid, skinNameLabel);
+
+        return previewBox;
+    }
+
+    /**
+     * 创建箭头按钮
+     */
+    private Button createArrowButton(String text) {
+        Button button = new Button(text);
+        button.setPrefSize(50, 50);
+        button.setFont(Font.font("Arial", FontWeight.BOLD, 24));
+        button.setStyle(
+                "-fx-background-color: #0F3460; " +
+                        "-fx-text-fill: white; " +
+                        "-fx-border-color: #E94560; " +
+                        "-fx-border-width: 2; " +
+                        "-fx-border-radius: 25; " +
+                        "-fx-background-radius: 25; " +
+                        "-fx-cursor: hand;"
+        );
+
+        button.setOnMouseEntered(e -> button.setStyle(
+                "-fx-background-color: #E94560; " +
+                        "-fx-text-fill: white; " +
+                        "-fx-border-color: #FF6B6B; " +
+                        "-fx-border-width: 2; " +
+                        "-fx-border-radius: 25; " +
+                        "-fx-background-radius: 25; " +
+                        "-fx-cursor: hand;"
+        ));
+
+        button.setOnMouseExited(e -> button.setStyle(
+                "-fx-background-color: #0F3460; " +
+                        "-fx-text-fill: white; " +
+                        "-fx-border-color: #E94560; " +
+                        "-fx-border-width: 2; " +
+                        "-fx-border-radius: 25; " +
+                        "-fx-background-radius: 25; " +
+                        "-fx-cursor: hand;"
+        ));
+
+        return button;
+    }
+
     /**
      * 显示关卡选择界面
      */
@@ -119,18 +321,18 @@ public class SceneManager {
         mainLayout.setPadding(new Insets(30));
         mainLayout.setBackground(new Background(new BackgroundFill(
                 Color.web("#1A1A2E"), CornerRadii.EMPTY, Insets.EMPTY)));
-        
+
         // 标题
         Label titleLabel = new Label("Select Level");
         titleLabel.setFont(Font.font("Arial", FontWeight.BOLD, 48));
         titleLabel.setTextFill(Color.WHITE);
-        
+
         // 关卡网格
         GridPane levelGrid = new GridPane();
         levelGrid.setAlignment(Pos.CENTER);
         levelGrid.setHgap(10);
         levelGrid.setVgap(10);
-        
+
         // 创建30个关卡按钮（每行6个，共5行）
         int cols = 6;
         for (int i = 1; i <= Constants.TOTAL_LEVELS; i++) {
@@ -139,17 +341,17 @@ public class SceneManager {
             int col = (i - 1) % cols;
             levelGrid.add(levelBtn, col, row);
         }
-        
+
         // 返回按钮
         Button backBtn = createMenuButton("Back to Menu");
         backBtn.setOnAction(e -> showMenu());
 
         mainLayout.getChildren().addAll(titleLabel, createSpacer(20), levelGrid, createSpacer(20), backBtn);
-        
+
         Scene levelSelectScene = new Scene(mainLayout, Constants.WINDOW_WIDTH, Constants.WINDOW_HEIGHT);
         primaryStage.setScene(levelSelectScene);
     }
-    
+
     /**
      * 开始指定关卡（检查是否需要显示介绍页面）
      * @param level 关卡编号
@@ -239,12 +441,12 @@ public class SceneManager {
         startBtn.setOnAction(e -> startLevelDirectly(level));
         startBtn.setStyle(
                 "-fx-background-color: #E94560; " +
-                "-fx-text-fill: white; " +
-                "-fx-border-color: #FF6B6B; " +
-                "-fx-border-width: 2; " +
-                "-fx-border-radius: 10; " +
-                "-fx-background-radius: 10; " +
-                "-fx-cursor: hand;"
+                        "-fx-text-fill: white; " +
+                        "-fx-border-color: #FF6B6B; " +
+                        "-fx-border-width: 2; " +
+                        "-fx-border-radius: 10; " +
+                        "-fx-background-radius: 10; " +
+                        "-fx-cursor: hand;"
         );
 
         Button backBtn = createMenuButton("Back");
@@ -294,10 +496,10 @@ public class SceneManager {
         card.setMaxWidth(650);
         card.setStyle(
                 "-fx-background-color: #16213E; " +
-                "-fx-background-radius: 15; " +
-                "-fx-border-color: " + element.color() + "; " +
-                "-fx-border-width: 2; " +
-                "-fx-border-radius: 15;"
+                        "-fx-background-radius: 15; " +
+                        "-fx-border-color: " + element.color() + "; " +
+                        "-fx-border-width: 2; " +
+                        "-fx-border-radius: 15;"
         );
 
         // 图标区域
@@ -512,7 +714,7 @@ public class SceneManager {
         gc.fillOval(x - size * 0.4, y - size * 0.3, size * 0.2, size * 0.3);
         gc.fillOval(x + size * 0.2, y - size * 0.3, size * 0.2, size * 0.3);
     }
-    
+
     /**
      * 关卡通过处理
      * @param level 完成的关卡
@@ -522,7 +724,7 @@ public class SceneManager {
         if (level >= unlockedLevel && level < Constants.TOTAL_LEVELS) {
             unlockedLevel = level + 1;
         }
-        
+
         if (level >= Constants.TOTAL_LEVELS) {
             // 通关所有关卡
             showVictoryScreen();
@@ -531,7 +733,7 @@ public class SceneManager {
             showLevelCompleteScreen(level);
         }
     }
-    
+
     /**
      * 游戏结束处理
      * @param level 失败的关卡
@@ -539,7 +741,7 @@ public class SceneManager {
     public void onGameOver(int level) {
         showGameOverScreen(level);
     }
-    
+
     /**
      * 显示关卡完成界面
      * @param level 完成的关卡
@@ -549,11 +751,11 @@ public class SceneManager {
         layout.setAlignment(Pos.CENTER);
         layout.setBackground(new Background(new BackgroundFill(
                 Color.web("#1A1A2E"), CornerRadii.EMPTY, Insets.EMPTY)));
-        
+
         Label titleLabel = new Label("Level " + level + " Complete!");
         titleLabel.setFont(Font.font("Arial", FontWeight.BOLD, 48));
         titleLabel.setTextFill(Color.LIMEGREEN);
-        
+
         // 获取章节剧情
         String storyText = getChapterStory(level);
         if (storyText != null && !storyText.isEmpty()) {
@@ -564,7 +766,7 @@ public class SceneManager {
             storyLabel.setMaxWidth(600);
             layout.getChildren().add(storyLabel);
         }
-        
+
         Button nextLevelBtn = createMenuButton("Next Level");
         nextLevelBtn.setOnAction(e -> startLevel(level + 1));
 
@@ -575,11 +777,11 @@ public class SceneManager {
         menuBtn.setOnAction(e -> showMenu());
 
         layout.getChildren().addAll(titleLabel, createSpacer(20), nextLevelBtn, selectBtn, menuBtn);
-        
+
         Scene scene = new Scene(layout, Constants.WINDOW_WIDTH, Constants.WINDOW_HEIGHT);
         primaryStage.setScene(scene);
     }
-    
+
     /**
      * 显示游戏结束界面
      * @param level 失败的关卡
@@ -589,7 +791,7 @@ public class SceneManager {
         layout.setAlignment(Pos.CENTER);
         layout.setBackground(new Background(new BackgroundFill(
                 Color.web("#1A1A2E"), CornerRadii.EMPTY, Insets.EMPTY)));
-        
+
         Label titleLabel = new Label("Game Over");
         titleLabel.setFont(Font.font("Arial", FontWeight.BOLD, 48));
         titleLabel.setTextFill(Color.RED);
@@ -606,13 +808,13 @@ public class SceneManager {
 
         Button menuBtn = createMenuButton("Back to Menu");
         menuBtn.setOnAction(e -> showMenu());
-        
+
         layout.getChildren().addAll(titleLabel, levelLabel, createSpacer(20), retryBtn, selectBtn, menuBtn);
-        
+
         Scene scene = new Scene(layout, Constants.WINDOW_WIDTH, Constants.WINDOW_HEIGHT);
         primaryStage.setScene(scene);
     }
-    
+
     /**
      * 显示通关界面
      */
@@ -621,7 +823,7 @@ public class SceneManager {
         layout.setAlignment(Pos.CENTER);
         layout.setBackground(new Background(new BackgroundFill(
                 Color.web("#1A1A2E"), CornerRadii.EMPTY, Insets.EMPTY)));
-        
+
         Label titleLabel = new Label("Congratulations!");
         titleLabel.setFont(Font.font("Arial", FontWeight.BOLD, 48));
         titleLabel.setTextFill(Color.GOLD);
@@ -635,13 +837,13 @@ public class SceneManager {
 
         Button menuBtn = createMenuButton("Back to Menu");
         menuBtn.setOnAction(e -> showMenu());
-        
+
         layout.getChildren().addAll(titleLabel, msgLabel, createSpacer(20), selectBtn, menuBtn);
-        
+
         Scene scene = new Scene(layout, Constants.WINDOW_WIDTH, Constants.WINDOW_HEIGHT);
         primaryStage.setScene(scene);
     }
-    
+
     /**
      * 创建菜单按钮
      * @param text 按钮文字
@@ -653,38 +855,38 @@ public class SceneManager {
         button.setFont(Font.font("Arial", FontWeight.BOLD, 18));
         button.setStyle(
                 "-fx-background-color: #16213E; " +
-                "-fx-text-fill: white; " +
-                "-fx-border-color: #0F3460; " +
-                "-fx-border-width: 2; " +
-                "-fx-border-radius: 10; " +
-                "-fx-background-radius: 10; " +
-                "-fx-cursor: hand;"
+                        "-fx-text-fill: white; " +
+                        "-fx-border-color: #0F3460; " +
+                        "-fx-border-width: 2; " +
+                        "-fx-border-radius: 10; " +
+                        "-fx-background-radius: 10; " +
+                        "-fx-cursor: hand;"
         );
-        
+
         // 鼠标悬停效果
         button.setOnMouseEntered(e -> button.setStyle(
                 "-fx-background-color: #0F3460; " +
-                "-fx-text-fill: #E94560; " +
-                "-fx-border-color: #E94560; " +
-                "-fx-border-width: 2; " +
-                "-fx-border-radius: 10; " +
-                "-fx-background-radius: 10; " +
-                "-fx-cursor: hand;"
+                        "-fx-text-fill: #E94560; " +
+                        "-fx-border-color: #E94560; " +
+                        "-fx-border-width: 2; " +
+                        "-fx-border-radius: 10; " +
+                        "-fx-background-radius: 10; " +
+                        "-fx-cursor: hand;"
         ));
-        
+
         button.setOnMouseExited(e -> button.setStyle(
                 "-fx-background-color: #16213E; " +
-                "-fx-text-fill: white; " +
-                "-fx-border-color: #0F3460; " +
-                "-fx-border-width: 2; " +
-                "-fx-border-radius: 10; " +
-                "-fx-background-radius: 10; " +
-                "-fx-cursor: hand;"
+                        "-fx-text-fill: white; " +
+                        "-fx-border-color: #0F3460; " +
+                        "-fx-border-width: 2; " +
+                        "-fx-border-radius: 10; " +
+                        "-fx-background-radius: 10; " +
+                        "-fx-cursor: hand;"
         ));
-        
+
         return button;
     }
-    
+
     /**
      * 创建关卡选择按钮
      * @param level 关卡编号
@@ -694,22 +896,22 @@ public class SceneManager {
         Button button = new Button(String.valueOf(level));
         button.setPrefSize(60, 60);
         button.setFont(Font.font("Arial", FontWeight.BOLD, 18));
-        
+
         boolean isUnlocked = level <= unlockedLevel;
         boolean isFusionLevel = (level % 6 == 0); // 融合关卡
-        
+
         if (isUnlocked) {
             String bgColor = isFusionLevel ? "#E94560" : "#16213E";
             String borderColor = isFusionLevel ? "#FF6B6B" : "#0F3460";
-            
+
             button.setStyle(
                     "-fx-background-color: " + bgColor + "; " +
-                    "-fx-text-fill: white; " +
-                    "-fx-border-color: " + borderColor + "; " +
-                    "-fx-border-width: 2; " +
-                    "-fx-border-radius: 10; " +
-                    "-fx-background-radius: 10; " +
-                    "-fx-cursor: hand;"
+                            "-fx-text-fill: white; " +
+                            "-fx-border-color: " + borderColor + "; " +
+                            "-fx-border-width: 2; " +
+                            "-fx-border-radius: 10; " +
+                            "-fx-background-radius: 10; " +
+                            "-fx-cursor: hand;"
             );
             button.setOnAction(e -> startLevel(level));
         } else {
@@ -717,18 +919,18 @@ public class SceneManager {
             button.setText("🔒");
             button.setStyle(
                     "-fx-background-color: #333333; " +
-                    "-fx-text-fill: #666666; " +
-                    "-fx-border-color: #444444; " +
-                    "-fx-border-width: 2; " +
-                    "-fx-border-radius: 10; " +
-                    "-fx-background-radius: 10;"
+                            "-fx-text-fill: #666666; " +
+                            "-fx-border-color: #444444; " +
+                            "-fx-border-width: 2; " +
+                            "-fx-border-radius: 10; " +
+                            "-fx-background-radius: 10;"
             );
             button.setDisable(true);
         }
-        
+
         return button;
     }
-    
+
     /**
      * 创建空白间隔
      * @param height 间隔高度
@@ -740,7 +942,7 @@ public class SceneManager {
         spacer.setPrefHeight(height);
         return spacer;
     }
-    
+
     /**
      * 获取章节剧情文字
      * @param level 关卡编号
@@ -757,7 +959,7 @@ public class SceneManager {
             default -> null;
         };
     }
-    
+
     /**
      * 获取当前游戏实例
      * @return Game实例
@@ -765,7 +967,7 @@ public class SceneManager {
     public Game getGame() {
         return game;
     }
-    
+
     /**
      * 获取已解锁的最大关卡
      * @return 已解锁关卡数
@@ -773,7 +975,7 @@ public class SceneManager {
     public int getUnlockedLevel() {
         return unlockedLevel;
     }
-    
+
     /**
      * 设置已解锁的最大关卡（用于存档读取）
      * @param level 关卡数
