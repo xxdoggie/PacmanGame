@@ -1,7 +1,6 @@
 package com.pacman.ui;
 
 import com.pacman.game.Game;
-import com.pacman.game.GameState;
 import com.pacman.ui.LevelIntroData.LevelIntro;
 import com.pacman.ui.LevelIntroData.NewElement;
 import com.pacman.util.Constants;
@@ -18,7 +17,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.ArcType;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 
 /**
