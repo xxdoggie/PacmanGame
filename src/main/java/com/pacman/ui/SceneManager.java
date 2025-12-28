@@ -128,15 +128,13 @@ public class SceneManager {
      * 显示设置界面
      */
     public void showSettings() {
-        VBox settingsLayout = new VBox(30);
-        settingsLayout.setAlignment(Pos.CENTER);
-        settingsLayout.setPadding(new Insets(40));
-        settingsLayout.setBackground(new Background(new BackgroundFill(
-                Color.web("#1A1A2E"), CornerRadii.EMPTY, Insets.EMPTY)));
+        VBox settingsContent = new VBox(20);
+        settingsContent.setAlignment(Pos.CENTER);
+        settingsContent.setPadding(new Insets(30));
 
         // 标题
         Label titleLabel = new Label("Settings");
-        titleLabel.setFont(Font.font("Arial", FontWeight.BOLD, 48));
+        titleLabel.setFont(Font.font("Arial", FontWeight.BOLD, 42));
         titleLabel.setTextFill(Color.WHITE);
 
         // 皮肤选择区域
@@ -149,17 +147,29 @@ public class SceneManager {
         Button backBtn = createMenuButton("Back to Menu");
         backBtn.setOnAction(e -> showMenu());
 
-        settingsLayout.getChildren().addAll(
+        settingsContent.getChildren().addAll(
                 titleLabel,
-                createSpacer(20),
+                createSpacer(10),
                 skinSection,
-                createSpacer(20),
+                createSpacer(10),
                 soundSection,
-                createSpacer(30),
+                createSpacer(15),
                 backBtn
         );
 
-        Scene settingsScene = new Scene(settingsLayout, Constants.WINDOW_WIDTH, Constants.WINDOW_HEIGHT);
+        // 使用 ScrollPane 包裹内容，确保可以滚动
+        ScrollPane scrollPane = new ScrollPane(settingsContent);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        scrollPane.setStyle("-fx-background: #1A1A2E; -fx-background-color: #1A1A2E;");
+
+        // 外层容器
+        StackPane root = new StackPane(scrollPane);
+        root.setBackground(new Background(new BackgroundFill(
+                Color.web("#1A1A2E"), CornerRadii.EMPTY, Insets.EMPTY)));
+
+        Scene settingsScene = new Scene(root, Constants.WINDOW_WIDTH, Constants.WINDOW_HEIGHT);
         primaryStage.setScene(settingsScene);
     }
 

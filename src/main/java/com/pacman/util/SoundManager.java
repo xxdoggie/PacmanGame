@@ -17,39 +17,36 @@ public class SoundManager {
 
     /** 音效类型枚举 */
     public enum SoundType {
-        EAT_DOT("eat_dot", 0.08),        // 吃豆（高频，设置冷却时间）
-        HURT("hurt", 0.5),                // 受伤
-        JUMP("jump", 0.2),                // 跳板
-        SPEED_UP("speed_up", 0.3),        // 加速
-        SLOW_DOWN("slow_down", 0.3),      // 减速
-        TELEPORT("teleport", 0.3),        // 传送
-        ITEM_PICKUP("item_pickup", 0.2),  // 吃到道具
-        COUNTDOWN("countdown", 0.5),      // 倒计时
-        LEVEL_COMPLETE("level_complete", 0.0), // 过关
-        GAME_OVER("game_over", 0.0);      // 失败
+        EAT_DOT("eat_dot", true),         // 吃豆（高频，单实例模式）
+        HURT("hurt", true),                // 受伤
+        JUMP("jump", true),                // 跳板
+        SPEED_UP("speed_up", true),        // 加速
+        SLOW_DOWN("slow_down", true),      // 减速
+        TELEPORT("teleport", true),        // 传送
+        ITEM_PICKUP("item_pickup", true),  // 吃到道具
+        COUNTDOWN("countdown", false),     // 倒计时（允许叠加）
+        LEVEL_COMPLETE("level_complete", false), // 过关
+        GAME_OVER("game_over", false);     // 失败
 
         private final String fileName;
-        private final double cooldown;  // 冷却时间（秒）
+        private final boolean singleInstance;  // 是否单实例播放（防止叠加）
 
-        SoundType(String fileName, double cooldown) {
+        SoundType(String fileName, boolean singleInstance) {
             this.fileName = fileName;
-            this.cooldown = cooldown;
+            this.singleInstance = singleInstance;
         }
 
         public String getFileName() {
             return fileName;
         }
 
-        public double getCooldown() {
-            return cooldown;
+        public boolean isSingleInstance() {
+            return singleInstance;
         }
     }
 
     /** 音效缓存 */
     private Map<SoundType, AudioClip> sounds;
-
-    /** 上次播放时间（用于冷却控制） */
-    private Map<SoundType, Long> lastPlayTime;
 
     /** 音效是否启用 */
     private boolean soundEnabled;
@@ -62,7 +59,6 @@ public class SoundManager {
      */
     private SoundManager() {
         this.sounds = new EnumMap<>(SoundType.class);
-        this.lastPlayTime = new EnumMap<>(SoundType.class);
         this.soundEnabled = true;
         this.volume = 0.7;
         loadAllSounds();
@@ -102,7 +98,7 @@ public class SoundManager {
     }
 
     /**
-     * 播放音效（带冷却控制）
+     * 播放音效
      * @param type 音效类型
      */
     public void play(SoundType type) {
@@ -110,23 +106,13 @@ public class SoundManager {
             return;
         }
 
-        // 检查冷却时间
-        long now = System.currentTimeMillis();
-        Long lastTime = lastPlayTime.get(type);
-        double cooldownMs = type.getCooldown() * 1000;
-
-        if (lastTime != null && cooldownMs > 0 && (now - lastTime) < cooldownMs) {
-            return; // 还在冷却中，跳过播放
-        }
-
         AudioClip clip = sounds.get(type);
         if (clip != null) {
-            // 对于高频音效，先停止之前的播放
-            if (type.getCooldown() > 0) {
+            // 单实例模式：先停止之前的播放，防止音频叠加耗尽资源
+            if (type.isSingleInstance()) {
                 clip.stop();
             }
             clip.play(volume);
-            lastPlayTime.put(type, now);
         }
     }
 
@@ -140,22 +126,12 @@ public class SoundManager {
             return;
         }
 
-        // 检查冷却时间
-        long now = System.currentTimeMillis();
-        Long lastTime = lastPlayTime.get(type);
-        double cooldownMs = type.getCooldown() * 1000;
-
-        if (lastTime != null && cooldownMs > 0 && (now - lastTime) < cooldownMs) {
-            return;
-        }
-
         AudioClip clip = sounds.get(type);
         if (clip != null) {
-            if (type.getCooldown() > 0) {
+            if (type.isSingleInstance()) {
                 clip.stop();
             }
             clip.play(customVolume);
-            lastPlayTime.put(type, now);
         }
     }
 
