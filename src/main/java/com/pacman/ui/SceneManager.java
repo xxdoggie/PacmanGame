@@ -7,6 +7,7 @@ import com.pacman.util.Constants;
 import com.pacman.util.Direction;
 import com.pacman.util.SkinManager;
 import com.pacman.util.SkinManager.SkinType;
+import com.pacman.util.SoundManager;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -15,6 +16,7 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Slider;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
@@ -140,6 +142,9 @@ public class SceneManager {
         // 皮肤选择区域
         VBox skinSection = createSkinSelector();
 
+        // 音效设置区域
+        VBox soundSection = createSoundSettings();
+
         // 返回按钮
         Button backBtn = createMenuButton("Back to Menu");
         backBtn.setOnAction(e -> showMenu());
@@ -148,6 +153,8 @@ public class SceneManager {
                 titleLabel,
                 createSpacer(20),
                 skinSection,
+                createSpacer(20),
+                soundSection,
                 createSpacer(30),
                 backBtn
         );
@@ -203,6 +210,85 @@ public class SceneManager {
         skinSection.getChildren().addAll(skinLabel, skinPreviewBox);
 
         return skinSection;
+    }
+
+    /**
+     * 创建音效设置组件
+     */
+    private VBox createSoundSettings() {
+        VBox soundSection = new VBox(15);
+        soundSection.setAlignment(Pos.CENTER);
+        soundSection.setPadding(new Insets(20));
+        soundSection.setStyle(
+                "-fx-background-color: #16213E; " +
+                        "-fx-background-radius: 15; " +
+                        "-fx-border-color: #0F3460; " +
+                        "-fx-border-width: 2; " +
+                        "-fx-border-radius: 15;"
+        );
+        soundSection.setMaxWidth(500);
+
+        // 音效设置标题
+        Label soundLabel = new Label("Sound");
+        soundLabel.setFont(Font.font("Arial", FontWeight.BOLD, 24));
+        soundLabel.setTextFill(Color.WHITE);
+
+        SoundManager soundManager = SoundManager.getInstance();
+
+        // 音效开关
+        HBox toggleBox = new HBox(15);
+        toggleBox.setAlignment(Pos.CENTER);
+
+        Label toggleLabel = new Label("Sound Effects:");
+        toggleLabel.setFont(Font.font("Arial", 16));
+        toggleLabel.setTextFill(Color.WHITE);
+
+        Button toggleBtn = new Button(soundManager.isSoundEnabled() ? "ON" : "OFF");
+        toggleBtn.setPrefWidth(80);
+        toggleBtn.setStyle(soundManager.isSoundEnabled() ?
+                "-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-font-weight: bold;" :
+                "-fx-background-color: #f44336; -fx-text-fill: white; -fx-font-weight: bold;");
+        toggleBtn.setOnAction(e -> {
+            boolean newState = !soundManager.isSoundEnabled();
+            soundManager.setSoundEnabled(newState);
+            showSettings(); // 刷新页面
+        });
+
+        toggleBox.getChildren().addAll(toggleLabel, toggleBtn);
+
+        // 音量滑块
+        HBox volumeBox = new HBox(15);
+        volumeBox.setAlignment(Pos.CENTER);
+
+        Label volumeLabel = new Label("Volume:");
+        volumeLabel.setFont(Font.font("Arial", 16));
+        volumeLabel.setTextFill(Color.WHITE);
+
+        Slider volumeSlider = new Slider(0, 100, soundManager.getVolume() * 100);
+        volumeSlider.setPrefWidth(200);
+        volumeSlider.setShowTickLabels(true);
+        volumeSlider.setShowTickMarks(true);
+        volumeSlider.setMajorTickUnit(25);
+        volumeSlider.setMinorTickCount(4);
+        volumeSlider.setBlockIncrement(5);
+        volumeSlider.setStyle("-fx-control-inner-background: #0F3460;");
+
+        Label volumeValue = new Label(String.format("%.0f%%", soundManager.getVolume() * 100));
+        volumeValue.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+        volumeValue.setTextFill(Color.GOLD);
+        volumeValue.setMinWidth(50);
+
+        volumeSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
+            double volume = newVal.doubleValue() / 100.0;
+            soundManager.setVolume(volume);
+            volumeValue.setText(String.format("%.0f%%", newVal.doubleValue()));
+        });
+
+        volumeBox.getChildren().addAll(volumeLabel, volumeSlider, volumeValue);
+
+        soundSection.getChildren().addAll(soundLabel, toggleBox, volumeBox);
+
+        return soundSection;
     }
 
     /**

@@ -17,30 +17,39 @@ public class SoundManager {
 
     /** 音效类型枚举 */
     public enum SoundType {
-        EAT_DOT("eat_dot"),           // 吃豆
-        HURT("hurt"),                  // 受伤
-        JUMP("jump"),                  // 跳板
-        SPEED_UP("speed_up"),          // 加速
-        SLOW_DOWN("slow_down"),        // 减速
-        TELEPORT("teleport"),          // 传送
-        ITEM_PICKUP("item_pickup"),    // 吃到道具
-        COUNTDOWN("countdown"),        // 倒计时
-        LEVEL_COMPLETE("level_complete"), // 过关
-        GAME_OVER("game_over");        // 失败
+        EAT_DOT("eat_dot", 0.08),        // 吃豆（高频，设置冷却时间）
+        HURT("hurt", 0.5),                // 受伤
+        JUMP("jump", 0.2),                // 跳板
+        SPEED_UP("speed_up", 0.3),        // 加速
+        SLOW_DOWN("slow_down", 0.3),      // 减速
+        TELEPORT("teleport", 0.3),        // 传送
+        ITEM_PICKUP("item_pickup", 0.2),  // 吃到道具
+        COUNTDOWN("countdown", 0.5),      // 倒计时
+        LEVEL_COMPLETE("level_complete", 0.0), // 过关
+        GAME_OVER("game_over", 0.0);      // 失败
 
         private final String fileName;
+        private final double cooldown;  // 冷却时间（秒）
 
-        SoundType(String fileName) {
+        SoundType(String fileName, double cooldown) {
             this.fileName = fileName;
+            this.cooldown = cooldown;
         }
 
         public String getFileName() {
             return fileName;
         }
+
+        public double getCooldown() {
+            return cooldown;
+        }
     }
 
     /** 音效缓存 */
     private Map<SoundType, AudioClip> sounds;
+
+    /** 上次播放时间（用于冷却控制） */
+    private Map<SoundType, Long> lastPlayTime;
 
     /** 音效是否启用 */
     private boolean soundEnabled;
@@ -53,6 +62,7 @@ public class SoundManager {
      */
     private SoundManager() {
         this.sounds = new EnumMap<>(SoundType.class);
+        this.lastPlayTime = new EnumMap<>(SoundType.class);
         this.soundEnabled = true;
         this.volume = 0.7;
         loadAllSounds();
@@ -92,7 +102,7 @@ public class SoundManager {
     }
 
     /**
-     * 播放音效
+     * 播放音效（带冷却控制）
      * @param type 音效类型
      */
     public void play(SoundType type) {
@@ -100,9 +110,23 @@ public class SoundManager {
             return;
         }
 
+        // 检查冷却时间
+        long now = System.currentTimeMillis();
+        Long lastTime = lastPlayTime.get(type);
+        double cooldownMs = type.getCooldown() * 1000;
+
+        if (lastTime != null && cooldownMs > 0 && (now - lastTime) < cooldownMs) {
+            return; // 还在冷却中，跳过播放
+        }
+
         AudioClip clip = sounds.get(type);
         if (clip != null) {
+            // 对于高频音效，先停止之前的播放
+            if (type.getCooldown() > 0) {
+                clip.stop();
+            }
             clip.play(volume);
+            lastPlayTime.put(type, now);
         }
     }
 
@@ -116,9 +140,22 @@ public class SoundManager {
             return;
         }
 
+        // 检查冷却时间
+        long now = System.currentTimeMillis();
+        Long lastTime = lastPlayTime.get(type);
+        double cooldownMs = type.getCooldown() * 1000;
+
+        if (lastTime != null && cooldownMs > 0 && (now - lastTime) < cooldownMs) {
+            return;
+        }
+
         AudioClip clip = sounds.get(type);
         if (clip != null) {
+            if (type.getCooldown() > 0) {
+                clip.stop();
+            }
             clip.play(customVolume);
+            lastPlayTime.put(type, now);
         }
     }
 
