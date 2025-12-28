@@ -97,6 +97,10 @@ public class SoundManager {
         }
     }
 
+    /** 播放计数（调试用） */
+    private Map<SoundType, Integer> playCount = new EnumMap<>(SoundType.class);
+    private long lastDebugTime = 0;
+
     /**
      * 播放音效
      * @param type 音效类型
@@ -107,12 +111,40 @@ public class SoundManager {
         }
 
         AudioClip clip = sounds.get(type);
-        if (clip != null) {
-            // 单实例模式：先停止之前的播放，防止音频叠加耗尽资源
-            if (type.isSingleInstance()) {
-                clip.stop();
+        if (clip == null) {
+            System.err.println("[SOUND DEBUG] Clip is NULL for: " + type);
+            return;
+        }
+
+        // 更新播放计数
+        playCount.put(type, playCount.getOrDefault(type, 0) + 1);
+
+        // 每秒输出一次统计
+        long now = System.currentTimeMillis();
+        if (now - lastDebugTime > 1000) {
+            StringBuilder sb = new StringBuilder("[SOUND STATS] ");
+            for (Map.Entry<SoundType, Integer> entry : playCount.entrySet()) {
+                if (entry.getValue() > 0) {
+                    sb.append(entry.getKey().name()).append("=").append(entry.getValue()).append(" ");
+                }
             }
+            System.out.println(sb.toString());
+            playCount.clear();
+            lastDebugTime = now;
+        }
+
+        // 单实例模式：先停止之前的播放，防止音频叠加耗尽资源
+        if (type.isSingleInstance()) {
+            clip.stop();
+            System.out.println("[SOUND DEBUG] stop() called for: " + type);
+        }
+
+        try {
             clip.play(volume);
+            System.out.println("[SOUND DEBUG] play() called for: " + type + ", volume=" + volume + ", isPlaying=" + clip.isPlaying());
+        } catch (Exception e) {
+            System.err.println("[SOUND ERROR] Exception during play(): " + type);
+            e.printStackTrace();
         }
     }
 
