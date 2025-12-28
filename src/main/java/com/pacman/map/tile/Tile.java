@@ -4,6 +4,8 @@ import com.pacman.entity.Entity;
 import com.pacman.entity.Player;
 import com.pacman.util.Constants;
 import com.pacman.util.Direction;
+import com.pacman.util.SoundManager;
+import com.pacman.util.SoundManager.SoundType;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
@@ -281,8 +283,14 @@ public class Tile {
 
         switch (type) {
             case ICE -> player.setOnIce(true);
-            case SPEED_UP -> player.applySpeedModifier(Constants.SPEED_UP_MULTIPLIER);
-            case SLOW_DOWN -> player.applySpeedModifier(Constants.SLOW_DOWN_MULTIPLIER);
+            case SPEED_UP -> {
+                player.applySpeedModifier(Constants.SPEED_UP_MULTIPLIER);
+                SoundManager.getInstance().play(SoundType.SPEED_UP);
+            }
+            case SLOW_DOWN -> {
+                player.applySpeedModifier(Constants.SLOW_DOWN_MULTIPLIER);
+                SoundManager.getInstance().play(SoundType.SLOW_DOWN);
+            }
             case BLIND_TRAP -> {
                 player.applyBlind(Constants.BLIND_DURATION);
                 // 陷阱触发后可以选择消失或保留
@@ -376,6 +384,7 @@ public class Tile {
         // 只有当找到有效落脚点时才跳跃
         if (targetX != -1 && targetY != -1) {
             player.startJump(targetX, targetY);
+            SoundManager.getInstance().play(SoundType.JUMP);
         }
     }
     
@@ -390,6 +399,7 @@ public class Tile {
             player.setGridY(linkedTile.getGridY());
             // 设置传送冷却，防止立即传送回来
             player.setPortalCooldown(0.5);
+            SoundManager.getInstance().play(SoundType.TELEPORT);
         }
     }
     

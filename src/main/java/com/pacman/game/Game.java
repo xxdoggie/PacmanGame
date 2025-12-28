@@ -6,6 +6,8 @@ import com.pacman.ui.SceneManager;
 import com.pacman.util.Constants;
 import com.pacman.util.Direction;
 import com.pacman.util.LevelLoader;
+import com.pacman.util.SoundManager;
+import com.pacman.util.SoundManager.SoundType;
 import javafx.animation.AnimationTimer;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -250,7 +252,8 @@ public class Game {
         if (countdownTimer >= 1.0) {
             countdownTimer = 0;
             countdown--;
-            
+            SoundManager.getInstance().play(SoundType.COUNTDOWN);
+
             if (countdown <= 0) {
                 state = GameState.PLAYING;
             }
@@ -274,6 +277,7 @@ public class Game {
             livesLabel.setText("Lives: " + lives);
             // 设置1.5秒的碰撞冷却时间，防止连续扣血
             collisionCooldown = 1.5;
+            SoundManager.getInstance().play(SoundType.HURT);
 
             if (lives <= 0) {
                 onGameOver();
@@ -318,11 +322,13 @@ public class Game {
     
     private void onGameOver() {
         stop();
+        SoundManager.getInstance().play(SoundType.GAME_OVER);
         SceneManager.getInstance().onGameOver(currentLevel);
     }
-    
+
     private void onLevelComplete() {
         stop();
+        SoundManager.getInstance().play(SoundType.LEVEL_COMPLETE);
         SceneManager.getInstance().onLevelComplete(currentLevel);
     }
     

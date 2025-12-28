@@ -1,0 +1,12 @@
+# Sound files directory
+# Place your .wav sound files here with the following names:
+# - eat_dot.wav       (吃豆)
+# - hurt.wav          (受伤)
+# - jump.wav          (跳板)
+# - speed_up.wav      (加速)
+# - slow_down.wav     (减速)
+# - teleport.wav      (传送)
+# - item_pickup.wav   (吃到道具)
+# - countdown.wav     (倒计时)
+# - level_complete.wav (过关)
+# - game_over.wav     (失败)
