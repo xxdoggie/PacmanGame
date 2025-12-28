@@ -17,36 +17,39 @@ public class SoundManager {
 
     /** 音效类型枚举 */
     public enum SoundType {
-        EAT_DOT("eat_dot", true),         // 吃豆（高频，单实例模式）
-        HURT("hurt", true),                // 受伤
-        JUMP("jump", true),                // 跳板
-        SPEED_UP("speed_up", true),        // 加速
-        SLOW_DOWN("slow_down", true),      // 减速
-        TELEPORT("teleport", true),        // 传送
-        ITEM_PICKUP("item_pickup", true),  // 吃到道具
-        COUNTDOWN("countdown", false),     // 倒计时（允许叠加）
-        LEVEL_COMPLETE("level_complete", false), // 过关
-        GAME_OVER("game_over", false);     // 失败
+        EAT_DOT("eat_dot", 100),          // 吃豆：100ms冷却
+        HURT("hurt", 500),                 // 受伤：500ms冷却
+        JUMP("jump", 200),                 // 跳板
+        SPEED_UP("speed_up", 300),         // 加速
+        SLOW_DOWN("slow_down", 300),       // 减速
+        TELEPORT("teleport", 300),         // 传送
+        ITEM_PICKUP("item_pickup", 200),   // 吃到道具
+        COUNTDOWN("countdown", 0),         // 倒计时：无冷却
+        LEVEL_COMPLETE("level_complete", 0), // 过关
+        GAME_OVER("game_over", 0);         // 失败
 
         private final String fileName;
-        private final boolean singleInstance;  // 是否单实例播放（防止叠加）
+        private final long cooldownMs;  // 冷却时间（毫秒）
 
-        SoundType(String fileName, boolean singleInstance) {
+        SoundType(String fileName, long cooldownMs) {
             this.fileName = fileName;
-            this.singleInstance = singleInstance;
+            this.cooldownMs = cooldownMs;
         }
 
         public String getFileName() {
             return fileName;
         }
 
-        public boolean isSingleInstance() {
-            return singleInstance;
+        public long getCooldownMs() {
+            return cooldownMs;
         }
     }
 
     /** 音效缓存 */
     private Map<SoundType, AudioClip> sounds;
+
+    /** 上次播放时间（用于冷却控制） */
+    private Map<SoundType, Long> lastPlayTime;
 
     /** 音效是否启用 */
     private boolean soundEnabled;
@@ -59,6 +62,7 @@ public class SoundManager {
      */
     private SoundManager() {
         this.sounds = new EnumMap<>(SoundType.class);
+        this.lastPlayTime = new EnumMap<>(SoundType.class);
         this.soundEnabled = true;
         this.volume = 0.7;
         loadAllSounds();
@@ -97,12 +101,8 @@ public class SoundManager {
         }
     }
 
-    /** 播放计数（调试用） */
-    private Map<SoundType, Integer> playCount = new EnumMap<>(SoundType.class);
-    private long lastDebugTime = 0;
-
     /**
-     * 播放音效
+     * 播放音效（使用冷却时间控制频率，不使用stop避免音频竞争）
      * @param type 音效类型
      */
     public void play(SoundType type) {
@@ -112,40 +112,22 @@ public class SoundManager {
 
         AudioClip clip = sounds.get(type);
         if (clip == null) {
-            System.err.println("[SOUND DEBUG] Clip is NULL for: " + type);
             return;
         }
 
-        // 更新播放计数
-        playCount.put(type, playCount.getOrDefault(type, 0) + 1);
-
-        // 每秒输出一次统计
+        // 检查冷却时间
         long now = System.currentTimeMillis();
-        if (now - lastDebugTime > 1000) {
-            StringBuilder sb = new StringBuilder("[SOUND STATS] ");
-            for (Map.Entry<SoundType, Integer> entry : playCount.entrySet()) {
-                if (entry.getValue() > 0) {
-                    sb.append(entry.getKey().name()).append("=").append(entry.getValue()).append(" ");
-                }
+        long cooldown = type.getCooldownMs();
+        if (cooldown > 0) {
+            Long lastTime = lastPlayTime.get(type);
+            if (lastTime != null && (now - lastTime) < cooldown) {
+                return; // 还在冷却中，跳过
             }
-            System.out.println(sb.toString());
-            playCount.clear();
-            lastDebugTime = now;
         }
 
-        // 单实例模式：先停止之前的播放，防止音频叠加耗尽资源
-        if (type.isSingleInstance()) {
-            clip.stop();
-            System.out.println("[SOUND DEBUG] stop() called for: " + type);
-        }
-
-        try {
-            clip.play(volume);
-            System.out.println("[SOUND DEBUG] play() called for: " + type + ", volume=" + volume + ", isPlaying=" + clip.isPlaying());
-        } catch (Exception e) {
-            System.err.println("[SOUND ERROR] Exception during play(): " + type);
-            e.printStackTrace();
-        }
+        // 直接播放，不调用stop()（避免音频系统竞争问题）
+        clip.play(volume);
+        lastPlayTime.put(type, now);
     }
 
     /**
@@ -159,12 +141,22 @@ public class SoundManager {
         }
 
         AudioClip clip = sounds.get(type);
-        if (clip != null) {
-            if (type.isSingleInstance()) {
-                clip.stop();
-            }
-            clip.play(customVolume);
+        if (clip == null) {
+            return;
         }
+
+        // 检查冷却时间
+        long now = System.currentTimeMillis();
+        long cooldown = type.getCooldownMs();
+        if (cooldown > 0) {
+            Long lastTime = lastPlayTime.get(type);
+            if (lastTime != null && (now - lastTime) < cooldown) {
+                return;
+            }
+        }
+
+        clip.play(customVolume);
+        lastPlayTime.put(type, now);
     }
 
     /**
