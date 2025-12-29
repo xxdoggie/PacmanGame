@@ -753,7 +753,7 @@ public class SceneManager {
         titleLabel.setFont(Font.font("Arial", FontWeight.BOLD, 48));
         titleLabel.setTextFill(Color.LIMEGREEN);
 
-        // 获取章节剧情
+        // Get chapter story
         String storyText = getChapterStory(level);
         if (storyText != null && !storyText.isEmpty()) {
             Label storyLabel = new Label(storyText);
