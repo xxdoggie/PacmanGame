@@ -40,7 +40,7 @@ public class LevelLoader {
     public static GameMap buildGameMap(Level level) {
         GameMap map = new GameMap();
         
-        // 解析地图布局
+        // Parse map layout
         String[] layout = level.getMapLayout();
         if (layout != null) {
             for (int y = 0; y < layout.length && y < Constants.MAP_ROWS; y++) {
@@ -52,24 +52,24 @@ public class LevelLoader {
                 }
             }
         }
-        
-        // 设置玩家出生点
+
+        // Set player spawn point
         map.setSpawnPoint(level.getSpawnX(), level.getSpawnY());
-        
-        // 处理单向通道方向
+
+        // Configure one-way passage directions
         for (Level.OneWayConfig oneWay : level.getOneWays()) {
             map.setTile(oneWay.x, oneWay.y, TileType.ONE_WAY, oneWay.getDirection());
         }
-        
-        // 链接传送门
+
+        // Link portal pairs
         for (Level.PortalPair portal : level.getPortals()) {
             map.linkPortals(portal.x1, portal.y1, portal.x2, portal.y2);
         }
-        
-        // 在空地上添加豆子
+
+        // Add dots on all floor tiles
         map.addDotsOnAllFloors();
-        
-        // 添加道具
+
+        // Add items
         for (Level.ItemConfig itemConfig : level.getItems()) {
             ItemType type = switch (itemConfig.type.toLowerCase()) {
                 case "magnet" -> ItemType.MAGNET;
@@ -81,8 +81,8 @@ public class LevelLoader {
                 map.addItem(itemConfig.x, itemConfig.y, type);
             }
         }
-        
-        // 添加敌人
+
+        // Add enemies
         for (int i = 0; i < level.getEnemies().size(); i++) {
             Level.EnemyConfig enemyConfig = level.getEnemies().get(i);
             map.addEnemy(enemyConfig.x, enemyConfig.y, enemyConfig.type);
@@ -111,65 +111,65 @@ public class LevelLoader {
         level.setName("Level " + levelNumber);
         level.setChapter((levelNumber - 1) / 6 + 1);
         
-        // 根据关卡编号生成不同的默认地图
+        // Generate different default maps based on level number
         level.setMapLayout(generateDefaultLayout(levelNumber));
         level.setSpawnX(1);
         level.setSpawnY(1);
-        
-        // 根据关卡难度添加敌人
+
+        // Add enemies based on level difficulty
         addDefaultEnemies(level, levelNumber);
-        
-        // 根据章节添加道具
+
+        // Add items based on chapter
         addDefaultItems(level, levelNumber);
         
         return level;
     }
     
     /**
-     * 生成默认地图布局
-     * @param levelNumber 关卡编号
-     * @return 地图布局字符串数组
+     * Generate default map layout
+     * @param levelNumber Level number
+     * @return Map layout string array
      */
     private static String[] generateDefaultLayout(int levelNumber) {
-        // 基础迷宫模板
+        // Base maze template
         String[] layout = new String[Constants.MAP_ROWS];
-        
-        // 第一行和最后一行是墙
+
+        // Top and bottom rows are walls
         StringBuilder topBottom = new StringBuilder();
         for (int i = 0; i < Constants.MAP_COLS; i++) {
             topBottom.append('#');
         }
         layout[0] = topBottom.toString();
         layout[Constants.MAP_ROWS - 1] = topBottom.toString();
-        
-        // 中间行
+
+        // Middle rows
         for (int y = 1; y < Constants.MAP_ROWS - 1; y++) {
             StringBuilder row = new StringBuilder();
             for (int x = 0; x < Constants.MAP_COLS; x++) {
                 if (x == 0 || x == Constants.MAP_COLS - 1) {
-                    row.append('#'); // 左右边界
+                    row.append('#'); // Left and right boundaries
                 } else if (shouldBeWall(x, y, levelNumber)) {
                     row.append('#');
                 } else if (shouldBeSpecialTile(x, y, levelNumber)) {
                     row.append(getSpecialTileChar(x, y, levelNumber));
                 } else {
-                    row.append('.'); // 空地
+                    row.append('.'); // Empty floor
                 }
             }
             layout[y] = row.toString();
         }
-        
+
         return layout;
     }
     
     /**
-     * 判断指定位置是否应该是墙
+     * Determine if a position should be a wall
      */
     private static boolean shouldBeWall(int x, int y, int levelNumber) {
-        // 确保出生点周围是空的
+        // Ensure spawn area is clear
         if (x <= 2 && y <= 2) return false;
-        
-        // 根据关卡生成不同的墙壁布局
+
+        // Generate different wall layouts based on level
         int pattern = levelNumber % 5;
         
         return switch (pattern) {
@@ -183,102 +183,102 @@ public class LevelLoader {
     }
     
     /**
-     * 判断是否应该是特殊格子
+     * Determine if a position should be a special tile
      */
     private static boolean shouldBeSpecialTile(int x, int y, int levelNumber) {
         int chapter = (levelNumber - 1) / 6 + 1;
-        
-        // 第一章没有特殊格子（除了传送门）
+
+        // Chapter 1 has no special tiles (except portals)
         if (chapter == 1 && levelNumber >= 4) {
-            // Level 4+ 有传送门
+            // Level 4+ has portals
             return (x == 1 && y == Constants.MAP_ROWS - 2) || (x == Constants.MAP_COLS - 2 && y == 1);
         }
-        
-        // 第二章开始有地形
+
+        // Chapter 2+ has terrain features
         if (chapter >= 2) {
-            // 冰面、加速带、减速带
+            // Ice, speed up, slow down tiles
             if (x > 5 && x < 15 && y == 7) return true;
             if (x == 10 && y > 3 && y < 12) return true;
         }
-        
+
         return false;
     }
     
     /**
-     * 获取特殊格子字符
+     * Get the special tile character for a position
      */
     private static char getSpecialTileChar(int x, int y, int levelNumber) {
         int chapter = (levelNumber - 1) / 6 + 1;
-        
+
         if (chapter == 1) {
-            return 'P'; // 传送门
+            return 'P'; // Portal
         }
-        
-        // 根据位置返回不同特殊格子
+
+        // Return different special tiles based on position
         if (y == 7) {
-            if (x < 8) return 'I'; // 冰面
-            if (x < 12) return '+'; // 加速带
-            return '-'; // 减速带
+            if (x < 8) return 'I'; // Ice
+            if (x < 12) return '+'; // Speed up
+            return '-'; // Slow down
         }
-        
+
         if (x == 10) {
-            return 'J'; // 跳板
+            return 'J'; // Jump pad
         }
-        
+
         return '.';
     }
     
     /**
-     * 添加默认敌人
+     * Add default enemies
      */
     private static void addDefaultEnemies(Level level, int levelNumber) {
-        // Level 1 没有敌人
+        // Level 1 has no enemies
         if (levelNumber == 1) return;
-        
+
         int chapter = (levelNumber - 1) / 6 + 1;
         int levelInChapter = (levelNumber - 1) % 6 + 1;
-        
-        // 追踪者
+
+        // Chasers
         if (levelNumber >= 2) {
             level.getEnemies().add(new Level.EnemyConfig("chaser", Constants.MAP_COLS - 3, Constants.MAP_ROWS - 3));
         }
         if (levelNumber >= 4) {
             level.getEnemies().add(new Level.EnemyConfig("chaser", Constants.MAP_COLS / 2, Constants.MAP_ROWS / 2));
         }
-        
-        // 游荡者
+
+        // Wanderers
         if (levelNumber >= 3) {
             level.getEnemies().add(new Level.EnemyConfig("wanderer", 5, Constants.MAP_ROWS - 3));
         }
         if (levelNumber >= 5) {
             level.getEnemies().add(new Level.EnemyConfig("wanderer", Constants.MAP_COLS - 5, 3));
         }
-        
-        // 巡逻者（第二章开始）
+
+        // Patrollers (starting from chapter 2)
         if (chapter >= 2 && levelInChapter >= 2) {
             level.getEnemies().add(new Level.EnemyConfig("patroller", 8, 5));
         }
         if (chapter >= 2 && levelInChapter >= 4) {
             level.getEnemies().add(new Level.EnemyConfig("patroller", 12, 10));
         }
-        
-        // 猎手（第三章开始）
+
+        // Hunters (starting from chapter 3)
         if (chapter >= 3 && levelInChapter >= 2) {
             level.getEnemies().add(new Level.EnemyConfig("hunter", Constants.MAP_COLS - 4, Constants.MAP_ROWS / 2));
         }
         if (chapter >= 3 && levelInChapter >= 5) {
             level.getEnemies().add(new Level.EnemyConfig("hunter", 4, Constants.MAP_ROWS / 2));
         }
-        
-        // 幻影（第四章开始）
+
+        // Phantoms (starting from chapter 4)
         if (chapter >= 4) {
             level.getEnemies().add(new Level.EnemyConfig("phantom", Constants.MAP_COLS / 2, 3));
         }
         if (chapter >= 4 && levelInChapter >= 4) {
             level.getEnemies().add(new Level.EnemyConfig("phantom", Constants.MAP_COLS / 2, Constants.MAP_ROWS - 4));
         }
-        
-        // 第五章增加更多敌人
+
+        // Chapter 5 adds more enemies
         if (chapter == 5) {
             level.getEnemies().add(new Level.EnemyConfig("chaser", 3, 3));
             level.getEnemies().add(new Level.EnemyConfig("hunter", Constants.MAP_COLS - 6, 6));
@@ -286,32 +286,32 @@ public class LevelLoader {
     }
     
     /**
-     * 添加默认道具
+     * Add default items
      */
     private static void addDefaultItems(Level level, int levelNumber) {
         int chapter = (levelNumber - 1) / 6 + 1;
-        
-        // 第三章开始有道具
+
+        // Items start appearing from chapter 3
         if (chapter < 3) return;
-        
+
         int levelInChapter = (levelNumber - 1) % 6 + 1;
-        
-        // 磁铁
+
+        // Magnet
         if (levelInChapter >= 1) {
             level.getItems().add(new Level.ItemConfig("magnet", Constants.MAP_COLS / 2, Constants.MAP_ROWS / 2));
         }
-        
-        // 护盾
+
+        // Shield
         if (levelInChapter >= 3) {
             level.getItems().add(new Level.ItemConfig("shield", 3, Constants.MAP_ROWS - 4));
         }
-        
-        // 穿墙术
+
+        // Wall pass
         if (levelInChapter >= 5) {
             level.getItems().add(new Level.ItemConfig("wallpass", Constants.MAP_COLS - 4, 4));
         }
-        
-        // 第五章有更多道具
+
+        // Chapter 5 has more items
         if (chapter == 5) {
             level.getItems().add(new Level.ItemConfig("shield", Constants.MAP_COLS - 3, Constants.MAP_ROWS - 3));
             if (levelInChapter >= 4) {

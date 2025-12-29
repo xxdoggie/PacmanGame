@@ -61,13 +61,13 @@ public class SkinManager {
 
                     Image image = new Image(
                             is,
-                            DISPLAY_SIZE,  // 请求宽度
-                            DISPLAY_SIZE,  // 请求高度
-                            true,          // 保持比例
-                            true           // 平滑缩放
+                            DISPLAY_SIZE,  // requested width
+                            DISPLAY_SIZE,  // requested height
+                            true,          // preserve ratio
+                            true           // smooth scaling
                     );
 
-                    // 检查图片是否加载成功
+                    // Check if image loaded successfully
                     if (image.isError()) {
                         System.err.println("Failed to load skin image (error): " + imagePath);
                         if (image.getException() != null) {

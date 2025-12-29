@@ -107,7 +107,7 @@ public class SoundManager {
             return;
         }
 
-        // 检查冷却时间
+        // Check cooldown time
         long now = System.currentTimeMillis();
         long cooldown = type.getCooldownMs();
         if (cooldown > 0) {
@@ -122,8 +122,8 @@ public class SoundManager {
     }
 
     /**
-     * 停止指定音效
-     * @param type 音效类型
+     * Stop the specified sound effect
+     * @param type Sound type
      */
     public void stop(SoundType type) {
         AudioClip clip = sounds.get(type);
@@ -133,7 +133,7 @@ public class SoundManager {
     }
 
     /**
-     * 停止所有音效
+     * Stop all sound effects
      */
     public void stopAll() {
         for (AudioClip clip : sounds.values()) {
@@ -144,8 +144,8 @@ public class SoundManager {
     }
 
     /**
-     * 设置音效是否启用
-     * @param enabled 是否启用
+     * Set whether sound effects are enabled
+     * @param enabled Whether to enable
      */
     public void setSoundEnabled(boolean enabled) {
         this.soundEnabled = enabled;
@@ -155,33 +155,33 @@ public class SoundManager {
     }
 
     /**
-     * 获取音效是否启用
-     * @return 是否启用
+     * Check if sound effects are enabled
+     * @return Whether sound is enabled
      */
     public boolean isSoundEnabled() {
         return soundEnabled;
     }
 
     /**
-     * 设置音量
-     * @param volume 音量（0.0 - 1.0）
+     * Set the volume level
+     * @param volume Volume level (0.0 - 1.0)
      */
     public void setVolume(double volume) {
         this.volume = Math.max(0.0, Math.min(1.0, volume));
     }
 
     /**
-     * 获取音量
-     * @return 音量
+     * Get the volume level
+     * @return Volume level
      */
     public double getVolume() {
         return volume;
     }
 
     /**
-     * 检查音效是否已加载
-     * @param type 音效类型
-     * @return 是否已加载
+     * Check if a sound effect is loaded
+     * @param type Sound type
+     * @return Whether the sound is loaded
      */
     public boolean isLoaded(SoundType type) {
         return sounds.containsKey(type);
