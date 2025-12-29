@@ -27,34 +27,17 @@ import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 
 /**
- * 场景管理器（单例模式）
- * 负责管理和切换游戏中的各个场景
+ * Scene manager (OOP: Singleton pattern)
+ * Manages and switches between game scenes
  */
 public class SceneManager {
-
-    /** 单例实例 */
     private static SceneManager instance;
-
-    /** 主舞台 */
     private Stage primaryStage;
-
-    /** 游戏实例 */
     private Game game;
+    private int unlockedLevel = Constants.TOTAL_LEVELS; // TODO: Change to 1 for release
 
-    /** 当前已解锁的最大关卡 */
-    // TODO: 临时解锁所有关卡用于测试，正式发布时改回 1
-    private int unlockedLevel = Constants.TOTAL_LEVELS;
+    private SceneManager() {}
 
-    /**
-     * 私有构造函数（单例模式）
-     */
-    private SceneManager() {
-    }
-
-    /**
-     * 获取单例实例
-     * @return SceneManager实例
-     */
     public static SceneManager getInstance() {
         if (instance == null) {
             instance = new SceneManager();
@@ -62,19 +45,11 @@ public class SceneManager {
         return instance;
     }
 
-    /**
-     * 初始化场景管理器
-     * @param stage 主舞台
-     */
     public void initialize(Stage stage) {
         this.primaryStage = stage;
-        // 预加载皮肤
         SkinManager.getInstance();
     }
 
-    /**
-     * 显示主菜单
-     */
     public void showMenu() {
         VBox menuLayout = new VBox(30);
         menuLayout.setAlignment(Pos.CENTER);
@@ -90,23 +65,12 @@ public class SceneManager {
         subtitleLabel.setFont(Font.font("Arial", FontWeight.BOLD, 36));
         subtitleLabel.setTextFill(Color.web("#FFD700"));
 
-        // 单人模式按钮
         Button singlePlayerBtn = createMenuButton("Single Player");
         singlePlayerBtn.setOnAction(e -> showLevelSelect());
 
-        // 设置按钮
         Button settingsBtn = createMenuButton("Settings");
         settingsBtn.setOnAction(e -> showSettings());
 
-        // 双人模式按钮（暂时禁用）
-        Button multiPlayerBtn = createMenuButton("Multiplayer");
-        multiPlayerBtn.setOnAction(e -> {
-            // TODO: 实现双人模式
-            System.out.println("双人模式开发中...");
-        });
-        multiPlayerBtn.setDisable(true);
-
-        // 退出按钮
         Button exitBtn = createMenuButton("Exit Game");
         exitBtn.setOnAction(e -> primaryStage.close());
 
@@ -116,7 +80,6 @@ public class SceneManager {
                 createSpacer(30),
                 singlePlayerBtn,
                 settingsBtn,
-                multiPlayerBtn,
                 exitBtn
         );
 
@@ -124,9 +87,6 @@ public class SceneManager {
         primaryStage.setScene(menuScene);
     }
 
-    /**
-     * 显示设置界面
-     */
     public void showSettings() {
         VBox settingsContent = new VBox(20);
         settingsContent.setAlignment(Pos.CENTER);
@@ -173,9 +133,6 @@ public class SceneManager {
         primaryStage.setScene(settingsScene);
     }
 
-    /**
-     * 创建皮肤选择器组件
-     */
     private VBox createSkinSelector() {
         VBox skinSection = new VBox(20);
         skinSection.setAlignment(Pos.CENTER);
@@ -222,9 +179,6 @@ public class SceneManager {
         return skinSection;
     }
 
-    /**
-     * 创建音效设置组件
-     */
     private VBox createSoundSettings() {
         VBox soundSection = new VBox(15);
         soundSection.setAlignment(Pos.CENTER);
@@ -301,9 +255,6 @@ public class SceneManager {
         return soundSection;
     }
 
-    /**
-     * 创建皮肤预览组件
-     */
     private VBox createSkinPreview() {
         VBox previewBox = new VBox(15);
         previewBox.setAlignment(Pos.CENTER);
@@ -368,9 +319,6 @@ public class SceneManager {
         return previewBox;
     }
 
-    /**
-     * 创建箭头按钮
-     */
     private Button createArrowButton(String text) {
         Button button = new Button(text);
         button.setPrefSize(50, 50);
@@ -408,9 +356,6 @@ public class SceneManager {
         return button;
     }
 
-    /**
-     * 显示关卡选择界面
-     */
     public void showLevelSelect() {
         VBox mainLayout = new VBox(20);
         mainLayout.setAlignment(Pos.CENTER);
@@ -448,10 +393,6 @@ public class SceneManager {
         primaryStage.setScene(levelSelectScene);
     }
 
-    /**
-     * 开始指定关卡（检查是否需要显示介绍页面）
-     * @param level 关卡编号
-     */
     public void startLevel(int level) {
         // 检查是否有新元素介绍
         if (LevelIntroData.hasIntro(level)) {
@@ -461,10 +402,6 @@ public class SceneManager {
         }
     }
 
-    /**
-     * 直接开始关卡（跳过介绍页面）
-     * @param level 关卡编号
-     */
     public void startLevelDirectly(int level) {
         game = new Game(level);
         Scene gameScene = game.getScene();
@@ -472,10 +409,6 @@ public class SceneManager {
         game.start();
     }
 
-    /**
-     * 显示关卡介绍页面
-     * @param level 关卡编号
-     */
     public void showLevelIntro(int level) {
         LevelIntro intro = LevelIntroData.getLevelIntro(level);
         if (intro == null) {
@@ -580,11 +513,6 @@ public class SceneManager {
         primaryStage.setScene(introScene);
     }
 
-    /**
-     * 创建元素介绍卡片
-     * @param element 新元素数据
-     * @return 元素卡片HBox
-     */
     private HBox createElementCard(NewElement element) {
         HBox card = new HBox(20);
         card.setAlignment(Pos.CENTER_LEFT);
@@ -643,14 +571,6 @@ public class SceneManager {
         return card;
     }
 
-    /**
-     * 绘制元素图标
-     * @param gc 图形上下文
-     * @param element 元素数据
-     * @param centerX 中心X坐标
-     * @param centerY 中心Y坐标
-     * @param size 图标大小
-     */
     private void drawElementIcon(GraphicsContext gc, NewElement element, double centerX, double centerY, double size) {
         gc.setFill(Color.web(element.color()));
 
@@ -782,9 +702,6 @@ public class SceneManager {
         }
     }
 
-    /**
-     * 绘制幽灵图标
-     */
     private void drawGhostIcon(GraphicsContext gc, double x, double y, double size, String color) {
         gc.setFill(Color.web(color));
 
@@ -811,37 +728,21 @@ public class SceneManager {
         gc.fillOval(x + size * 0.2, y - size * 0.3, size * 0.2, size * 0.3);
     }
 
-    /**
-     * 关卡通过处理
-     * @param level 完成的关卡
-     */
     public void onLevelComplete(int level) {
-        // 解锁下一关
         if (level >= unlockedLevel && level < Constants.TOTAL_LEVELS) {
             unlockedLevel = level + 1;
         }
-
         if (level >= Constants.TOTAL_LEVELS) {
-            // 通关所有关卡
             showVictoryScreen();
         } else {
-            // 显示关卡完成界面
             showLevelCompleteScreen(level);
         }
     }
 
-    /**
-     * 游戏结束处理
-     * @param level 失败的关卡
-     */
     public void onGameOver(int level) {
         showGameOverScreen(level);
     }
 
-    /**
-     * 显示关卡完成界面
-     * @param level 完成的关卡
-     */
     private void showLevelCompleteScreen(int level) {
         VBox layout = new VBox(30);
         layout.setAlignment(Pos.CENTER);
@@ -878,10 +779,6 @@ public class SceneManager {
         primaryStage.setScene(scene);
     }
 
-    /**
-     * 显示游戏结束界面
-     * @param level 失败的关卡
-     */
     private void showGameOverScreen(int level) {
         VBox layout = new VBox(30);
         layout.setAlignment(Pos.CENTER);
@@ -911,9 +808,6 @@ public class SceneManager {
         primaryStage.setScene(scene);
     }
 
-    /**
-     * 显示通关界面
-     */
     private void showVictoryScreen() {
         VBox layout = new VBox(30);
         layout.setAlignment(Pos.CENTER);
@@ -940,11 +834,6 @@ public class SceneManager {
         primaryStage.setScene(scene);
     }
 
-    /**
-     * 创建菜单按钮
-     * @param text 按钮文字
-     * @return 样式化的按钮
-     */
     private Button createMenuButton(String text) {
         Button button = new Button(text);
         button.setPrefSize(Constants.BUTTON_WIDTH, Constants.BUTTON_HEIGHT);
@@ -983,18 +872,13 @@ public class SceneManager {
         return button;
     }
 
-    /**
-     * 创建关卡选择按钮
-     * @param level 关卡编号
-     * @return 关卡按钮
-     */
     private Button createLevelButton(int level) {
         Button button = new Button(String.valueOf(level));
         button.setPrefSize(60, 60);
         button.setFont(Font.font("Arial", FontWeight.BOLD, 18));
 
         boolean isUnlocked = level <= unlockedLevel;
-        boolean isFusionLevel = (level % 6 == 0); // 融合关卡
+        boolean isFusionLevel = (level % 6 == 0);
 
         if (isUnlocked) {
             String bgColor = isFusionLevel ? "#E94560" : "#16213E";
@@ -1011,7 +895,6 @@ public class SceneManager {
             );
             button.setOnAction(e -> startLevel(level));
         } else {
-            // 锁定状态
             button.setText("🔒");
             button.setStyle(
                     "-fx-background-color: #333333; " +
@@ -1023,15 +906,9 @@ public class SceneManager {
             );
             button.setDisable(true);
         }
-
         return button;
     }
 
-    /**
-     * 创建空白间隔
-     * @param height 间隔高度
-     * @return Region对象
-     */
     private Region createSpacer(double height) {
         Region spacer = new Region();
         spacer.setMinHeight(height);
@@ -1039,11 +916,6 @@ public class SceneManager {
         return spacer;
     }
 
-    /**
-     * 获取章节剧情文字
-     * @param level 关卡编号
-     * @return 剧情文字
-     */
     private String getChapterStory(int level) {
         return switch (level) {
             case 1 -> "Something stirs in the maze...";
@@ -1056,26 +928,8 @@ public class SceneManager {
         };
     }
 
-    /**
-     * 获取当前游戏实例
-     * @return Game实例
-     */
-    public Game getGame() {
-        return game;
-    }
-
-    /**
-     * 获取已解锁的最大关卡
-     * @return 已解锁关卡数
-     */
-    public int getUnlockedLevel() {
-        return unlockedLevel;
-    }
-
-    /**
-     * 设置已解锁的最大关卡（用于存档读取）
-     * @param level 关卡数
-     */
+    public Game getGame() { return game; }
+    public int getUnlockedLevel() { return unlockedLevel; }
     public void setUnlockedLevel(int level) {
         this.unlockedLevel = Math.min(level, Constants.TOTAL_LEVELS);
     }

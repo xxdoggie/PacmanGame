@@ -24,8 +24,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
 /**
- * 游戏主控制器类
- * 负责游戏的主循环、渲染、输入处理等
+ * Main game controller - handles game loop, rendering, and input
  */
 public class Game {
     
@@ -51,7 +50,7 @@ public class Game {
     private Label livesLabel;
     private VBox pauseOverlay;
 
-    /** 碰撞冷却时间（防止连续扣血） */
+    /** Collision cooldown to prevent repeated damage */
     private double collisionCooldown;
     
     public Game(int levelNumber) {
@@ -163,14 +162,13 @@ public class Game {
     }
     
     private void setupKeyboardInput() {
-        // 让mainLayout可以获得焦点
         mainLayout.setFocusTraversable(true);
 
-        // 使用addEventFilter在事件到达子节点之前捕获，确保能接收到所有键盘事件
+        // Capture keyboard events before they reach child nodes
         scene.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             KeyCode code = event.getCode();
 
-            // 消费方向键和WASD事件，防止被用于焦点遍历
+            // Consume arrow and WASD keys to prevent focus traversal
             if (code == KeyCode.UP || code == KeyCode.DOWN ||
                 code == KeyCode.LEFT || code == KeyCode.RIGHT ||
                 code == KeyCode.W || code == KeyCode.A ||
@@ -263,7 +261,7 @@ public class Game {
     private void updatePlaying(double deltaTime) {
         gameTime += deltaTime;
 
-        // 更新碰撞冷却时间
+        // Update collision cooldown
         if (collisionCooldown > 0) {
             collisionCooldown -= deltaTime;
         }
@@ -271,18 +269,17 @@ public class Game {
         player.update(deltaTime);
         gameMap.update(player, deltaTime);
 
-        // 只有在冷却时间结束后才检测碰撞
+        // Check collision only after cooldown expires
         if (collisionCooldown <= 0 && gameMap.checkEnemyCollision(player)) {
             lives--;
             livesLabel.setText("Lives: " + lives);
-            // 设置1.5秒的碰撞冷却时间，防止连续扣血
-            collisionCooldown = 1.5;
+            collisionCooldown = 1.5; // 1.5s cooldown to prevent rapid damage
             SoundManager.getInstance().play(SoundType.HURT);
 
             if (lives <= 0) {
                 onGameOver();
             }
-            // 不再回到出生点，继续游戏
+            // Continue game without respawning
         }
 
         if (gameMap.allDotsCollected()) {
@@ -297,9 +294,7 @@ public class Game {
         player.setGridX(gameMap.getSpawnX());
         player.setGridY(gameMap.getSpawnY());
         player.setDirection(Direction.NONE);
-
-        // 复活时不暂停游戏，直接继续（保持PLAYING状态）
-        // 只有游戏开始时才进入COUNTDOWN状态
+        // No pause on respawn - only COUNTDOWN at game start
     }
     
     private void restartLevel() {

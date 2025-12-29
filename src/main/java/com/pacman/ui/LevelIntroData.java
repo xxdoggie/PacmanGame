@@ -5,36 +5,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 关卡介绍数据类
- * 存储每个关卡引入的新元素信息
+ * Level introduction data - stores new element info for each level
  */
 public class LevelIntroData {
-
-    /**
-     * 新元素类型枚举
-     */
     public enum ElementType {
-        ENEMY,      // 敌人
-        ITEM,       // 道具
-        TERRAIN,    // 地形
-        MECHANIC    // 游戏机制
+        ENEMY, ITEM, TERRAIN, MECHANIC
     }
 
-    /**
-     * 新元素数据记录
-     */
     public record NewElement(
             ElementType type,
             String name,
             String description,
             String tips,
             String color,
-            String iconType  // 用于绘制图标的类型标识
+            String iconType
     ) {}
 
-    /**
-     * 关卡介绍数据记录
-     */
     public record LevelIntro(
             int level,
             String title,
@@ -42,11 +28,6 @@ public class LevelIntroData {
             List<NewElement> newElements
     ) {}
 
-    /**
-     * 获取指定关卡的介绍数据
-     * @param level 关卡编号
-     * @return 关卡介绍数据，如果该关卡没有新元素则返回null
-     */
     public static LevelIntro getLevelIntro(int level) {
         return switch (level) {
             case 1 -> createLevel1Intro();
@@ -69,16 +50,9 @@ public class LevelIntroData {
         };
     }
 
-    /**
-     * 判断关卡是否有新元素介绍
-     * @param level 关卡编号
-     * @return 是否有新元素介绍
-     */
     public static boolean hasIntro(int level) {
         return getLevelIntro(level) != null;
     }
-
-    // ==================== 各关卡介绍数据 ====================
 
     private static LevelIntro createLevel1Intro() {
         List<NewElement> elements = new ArrayList<>();
