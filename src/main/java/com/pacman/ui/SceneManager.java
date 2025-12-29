@@ -56,7 +56,7 @@ public class SceneManager {
         menuLayout.setBackground(new Background(new BackgroundFill(
                 Color.web("#1A1A2E"), CornerRadii.EMPTY, Insets.EMPTY)));
 
-        // 游戏标题
+        // Game title
         Label titleLabel = new Label("PAC-MAN");
         titleLabel.setFont(Font.font("Arial", FontWeight.BOLD, 72));
         titleLabel.setTextFill(Color.YELLOW);
@@ -92,18 +92,18 @@ public class SceneManager {
         settingsContent.setAlignment(Pos.CENTER);
         settingsContent.setPadding(new Insets(30));
 
-        // 标题
+        // Title
         Label titleLabel = new Label("Settings");
         titleLabel.setFont(Font.font("Arial", FontWeight.BOLD, 42));
         titleLabel.setTextFill(Color.WHITE);
 
-        // 皮肤选择区域
+        // Skin selection section
         VBox skinSection = createSkinSelector();
 
-        // 音效设置区域
+        // Sound settings section
         VBox soundSection = createSoundSettings();
 
-        // 返回按钮
+        // Back button
         Button backBtn = createMenuButton("Back to Menu");
         backBtn.setOnAction(e -> showMenu());
 
@@ -117,14 +117,14 @@ public class SceneManager {
                 backBtn
         );
 
-        // 使用 ScrollPane 包裹内容，确保可以滚动
+        // Wrap content with ScrollPane to enable scrolling
         ScrollPane scrollPane = new ScrollPane(settingsContent);
         scrollPane.setFitToWidth(true);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         scrollPane.setStyle("-fx-background: #1A1A2E; -fx-background-color: #1A1A2E;");
 
-        // 外层容器
+        // Outer container
         StackPane root = new StackPane(scrollPane);
         root.setBackground(new Background(new BackgroundFill(
                 Color.web("#1A1A2E"), CornerRadii.EMPTY, Insets.EMPTY)));
@@ -146,30 +146,30 @@ public class SceneManager {
         );
         skinSection.setMaxWidth(500);
 
-        // 皮肤选择标题
+        // Skin selection title
         Label skinLabel = new Label("Player Skin");
         skinLabel.setFont(Font.font("Arial", FontWeight.BOLD, 24));
         skinLabel.setTextFill(Color.WHITE);
 
-        // 皮肤预览和切换区域
+        // Skin preview and switch area
         HBox skinPreviewBox = new HBox(30);
         skinPreviewBox.setAlignment(Pos.CENTER);
 
-        // 左箭头按钮
+        // Left arrow button
         Button leftArrow = createArrowButton("<");
         leftArrow.setOnAction(e -> {
             SkinManager.getInstance().previousSkin();
-            showSettings(); // 刷新页面
+            showSettings(); // Refresh page
         });
 
-        // 皮肤预览
+        // Skin preview
         VBox previewBox = createSkinPreview();
 
-        // 右箭头按钮
+        // Right arrow button
         Button rightArrow = createArrowButton(">");
         rightArrow.setOnAction(e -> {
             SkinManager.getInstance().nextSkin();
-            showSettings(); // 刷新页面
+            showSettings(); // Refresh page
         });
 
         skinPreviewBox.getChildren().addAll(leftArrow, previewBox, rightArrow);
@@ -192,14 +192,14 @@ public class SceneManager {
         );
         soundSection.setMaxWidth(500);
 
-        // 音效设置标题
+        // Sound settings title
         Label soundLabel = new Label("Sound");
         soundLabel.setFont(Font.font("Arial", FontWeight.BOLD, 24));
         soundLabel.setTextFill(Color.WHITE);
 
         SoundManager soundManager = SoundManager.getInstance();
 
-        // 音效开关
+        // Sound toggle
         HBox toggleBox = new HBox(15);
         toggleBox.setAlignment(Pos.CENTER);
 
@@ -215,12 +215,12 @@ public class SceneManager {
         toggleBtn.setOnAction(e -> {
             boolean newState = !soundManager.isSoundEnabled();
             soundManager.setSoundEnabled(newState);
-            showSettings(); // 刷新页面
+            showSettings(); // Refresh page
         });
 
         toggleBox.getChildren().addAll(toggleLabel, toggleBtn);
 
-        // 音量滑块
+        // Volume slider
         HBox volumeBox = new HBox(15);
         volumeBox.setAlignment(Pos.CENTER);
 
@@ -263,18 +263,18 @@ public class SceneManager {
         SkinManager skinManager = SkinManager.getInstance();
         SkinType currentSkin = skinManager.getCurrentSkin();
 
-        // 皮肤名称
+        // Skin name
         Label skinNameLabel = new Label(currentSkin.getDisplayName());
         skinNameLabel.setFont(Font.font("Arial", FontWeight.BOLD, 20));
         skinNameLabel.setTextFill(Color.GOLD);
 
-        // 四方向预览
+        // Four-direction preview
         GridPane directionGrid = new GridPane();
         directionGrid.setAlignment(Pos.CENTER);
         directionGrid.setHgap(10);
         directionGrid.setVgap(10);
 
-        // 上
+        // Up
         Image upImage = skinManager.getImage(Direction.UP);
         if (upImage != null) {
             ImageView upView = new ImageView(upImage);
@@ -284,7 +284,7 @@ public class SceneManager {
             directionGrid.add(upView, 1, 0);
         }
 
-        // 左
+        // Left
         Image leftImage = skinManager.getImage(Direction.LEFT);
         if (leftImage != null) {
             ImageView leftView = new ImageView(leftImage);
@@ -294,7 +294,7 @@ public class SceneManager {
             directionGrid.add(leftView, 0, 1);
         }
 
-        // 下
+        // Down
         Image downImage = skinManager.getImage(Direction.DOWN);
         if (downImage != null) {
             ImageView downView = new ImageView(downImage);
@@ -304,7 +304,7 @@ public class SceneManager {
             directionGrid.add(downView, 1, 1);
         }
 
-        // 右
+        // Right
         Image rightImage = skinManager.getImage(Direction.RIGHT);
         if (rightImage != null) {
             ImageView rightView = new ImageView(rightImage);
@@ -363,18 +363,18 @@ public class SceneManager {
         mainLayout.setBackground(new Background(new BackgroundFill(
                 Color.web("#1A1A2E"), CornerRadii.EMPTY, Insets.EMPTY)));
 
-        // 标题
+        // Title
         Label titleLabel = new Label("Select Level");
         titleLabel.setFont(Font.font("Arial", FontWeight.BOLD, 48));
         titleLabel.setTextFill(Color.WHITE);
 
-        // 关卡网格
+        // Level grid
         GridPane levelGrid = new GridPane();
         levelGrid.setAlignment(Pos.CENTER);
         levelGrid.setHgap(10);
         levelGrid.setVgap(10);
 
-        // 创建30个关卡按钮（每行6个，共5行）
+        // Create 30 level buttons (6 per row, 5 rows)
         int cols = 6;
         for (int i = 1; i <= Constants.TOTAL_LEVELS; i++) {
             Button levelBtn = createLevelButton(i);
@@ -383,7 +383,7 @@ public class SceneManager {
             levelGrid.add(levelBtn, col, row);
         }
 
-        // 返回按钮
+        // Back button
         Button backBtn = createMenuButton("Back to Menu");
         backBtn.setOnAction(e -> showMenu());
 
@@ -394,7 +394,7 @@ public class SceneManager {
     }
 
     public void startLevel(int level) {
-        // 检查是否有新元素介绍
+        // Check if there is a new element introduction
         if (LevelIntroData.hasIntro(level)) {
             showLevelIntro(level);
         } else {
@@ -422,39 +422,39 @@ public class SceneManager {
         mainLayout.setBackground(new Background(new BackgroundFill(
                 Color.web("#1A1A2E"), CornerRadii.EMPTY, Insets.EMPTY)));
 
-        // 关卡标题
+        // Level title
         Label levelLabel = new Label("Level " + level);
         levelLabel.setFont(Font.font("Arial", FontWeight.BOLD, 24));
         levelLabel.setTextFill(Color.LIGHTGRAY);
 
-        // 章节标题
+        // Chapter title
         Label titleLabel = new Label(intro.title());
         titleLabel.setFont(Font.font("Arial", FontWeight.BOLD, 42));
         titleLabel.setTextFill(Color.GOLD);
 
-        // 副标题
+        // Subtitle
         Label subtitleLabel = new Label(intro.subtitle());
         subtitleLabel.setFont(Font.font("Arial", FontWeight.NORMAL, 18));
         subtitleLabel.setTextFill(Color.LIGHTGRAY);
 
-        // 新元素容器
+        // New elements container
         VBox elementsContainer = new VBox(25);
         elementsContainer.setAlignment(Pos.CENTER);
         elementsContainer.setPadding(new Insets(20, 0, 20, 0));
 
-        // 新元素标题
+        // New elements title
         Label newElementsTitle = new Label("— New Elements —");
         newElementsTitle.setFont(Font.font("Arial", FontWeight.BOLD, 20));
         newElementsTitle.setTextFill(Color.WHITE);
         elementsContainer.getChildren().add(newElementsTitle);
 
-        // 添加每个新元素的介绍卡片
+        // Add introduction card for each new element
         for (NewElement element : intro.newElements()) {
             HBox elementCard = createElementCard(element);
             elementsContainer.getChildren().add(elementCard);
         }
 
-        // 如果元素太多，使用滚动面板
+        // Use scroll pane if there are too many elements
         ScrollPane scrollPane = new ScrollPane(elementsContainer);
         scrollPane.setFitToWidth(true);
         scrollPane.setMaxHeight(350);
@@ -462,7 +462,7 @@ public class SceneManager {
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
 
-        // 按钮区域
+        // Button area
         HBox buttonBox = new HBox(20);
         buttonBox.setAlignment(Pos.CENTER);
 
@@ -483,7 +483,7 @@ public class SceneManager {
 
         buttonBox.getChildren().addAll(startBtn, backBtn);
 
-        // 提示文字
+        // Hint text
         Label tipLabel = new Label("Press Enter to start quickly");
         tipLabel.setFont(Font.font("Arial", FontWeight.NORMAL, 14));
         tipLabel.setTextFill(Color.GRAY);
@@ -501,7 +501,7 @@ public class SceneManager {
 
         Scene introScene = new Scene(mainLayout, Constants.WINDOW_WIDTH, Constants.WINDOW_HEIGHT);
 
-        // 添加键盘快捷键
+        // Add keyboard shortcuts
         introScene.setOnKeyPressed(e -> {
             switch (e.getCode()) {
                 case ENTER, SPACE -> startLevelDirectly(level);
@@ -526,16 +526,16 @@ public class SceneManager {
                         "-fx-border-radius: 15;"
         );
 
-        // 图标区域
+        // Icon area
         Canvas iconCanvas = new Canvas(80, 80);
         GraphicsContext gc = iconCanvas.getGraphicsContext2D();
         drawElementIcon(gc, element, 40, 40, 30);
 
-        // 文字区域
+        // Text area
         VBox textBox = new VBox(8);
         textBox.setAlignment(Pos.CENTER_LEFT);
 
-        // 元素类型标签
+        // Element type label
         String typeText = switch (element.type()) {
             case ENEMY -> "[Enemy]";
             case ITEM -> "[Item]";
@@ -546,19 +546,19 @@ public class SceneManager {
         typeLabel.setFont(Font.font("Arial", FontWeight.BOLD, 12));
         typeLabel.setTextFill(Color.web(element.color()));
 
-        // 名称
+        // Name
         Label nameLabel = new Label(element.name());
         nameLabel.setFont(Font.font("Arial", FontWeight.BOLD, 22));
         nameLabel.setTextFill(Color.WHITE);
 
-        // 描述
+        // Description
         Label descLabel = new Label(element.description());
         descLabel.setFont(Font.font("Arial", FontWeight.NORMAL, 14));
         descLabel.setTextFill(Color.LIGHTGRAY);
         descLabel.setWrapText(true);
         descLabel.setMaxWidth(450);
 
-        // 提示（Tips）
+        // Tips
         Label tipsLabel = new Label("💡 " + element.tips());
         tipsLabel.setFont(Font.font("Arial", FontWeight.NORMAL, 13));
         tipsLabel.setTextFill(Color.GOLD);
@@ -576,16 +576,16 @@ public class SceneManager {
 
         switch (element.iconType()) {
             case "player" -> {
-                // 绘制吃豆人
+                // Draw Pac-Man
                 gc.setFill(Color.YELLOW);
                 gc.fillArc(centerX - size, centerY - size, size * 2, size * 2, 35, 290, ArcType.ROUND);
             }
             case "chaser", "wanderer", "hunter", "patroller", "phantom" -> {
-                // 绘制幽灵形状
+                // Draw ghost shape
                 drawGhostIcon(gc, centerX, centerY, size, element.color());
             }
             case "ice" -> {
-                // 绘制冰面方块
+                // Draw ice floor block
                 gc.fillRoundRect(centerX - size, centerY - size, size * 2, size * 2, 8, 8);
                 gc.setStroke(Color.WHITE);
                 gc.setLineWidth(2);
@@ -593,10 +593,10 @@ public class SceneManager {
                 gc.strokeLine(centerX - size * 0.3, centerY + size * 0.2, centerX + size * 0.5, centerY - size * 0.4);
             }
             case "jumppad" -> {
-                // 绘制跳板
+                // Draw jump pad
                 gc.fillRoundRect(centerX - size, centerY - size * 0.5, size * 2, size, 5, 5);
                 gc.setFill(Color.WHITE);
-                // 向上箭头
+                // Up arrow
                 gc.fillPolygon(
                         new double[]{centerX - size * 0.4, centerX, centerX + size * 0.4},
                         new double[]{centerY + size * 0.8, centerY - size * 0.8, centerY + size * 0.8},
@@ -604,10 +604,10 @@ public class SceneManager {
                 );
             }
             case "speedup" -> {
-                // 绘制加速带
+                // Draw speed boost
                 gc.fillRoundRect(centerX - size, centerY - size * 0.5, size * 2, size, 5, 5);
                 gc.setFill(Color.WHITE);
-                // 双箭头
+                // Double arrows
                 double arrowY = centerY;
                 gc.fillPolygon(
                         new double[]{centerX - size * 0.6, centerX - size * 0.2, centerX - size * 0.6},
@@ -621,18 +621,18 @@ public class SceneManager {
                 );
             }
             case "slowdown" -> {
-                // 绘制减速带
+                // Draw slowdown zone
                 gc.fillRoundRect(centerX - size, centerY - size * 0.5, size * 2, size, 5, 5);
                 gc.setStroke(Color.WHITE);
                 gc.setLineWidth(3);
-                // 横条纹
+                // Horizontal stripes
                 for (int i = -2; i <= 2; i++) {
                     gc.strokeLine(centerX + i * size * 0.3, centerY - size * 0.3,
                             centerX + i * size * 0.3, centerY + size * 0.3);
                 }
             }
             case "portal" -> {
-                // 绘制传送门（旋涡效果）
+                // Draw portal (vortex effect)
                 gc.setStroke(Color.web(element.color()));
                 gc.setLineWidth(3);
                 for (int i = 0; i < 3; i++) {
@@ -643,10 +643,10 @@ public class SceneManager {
                 gc.fillOval(centerX - size * 0.2, centerY - size * 0.2, size * 0.4, size * 0.4);
             }
             case "oneway" -> {
-                // 绘制单向通道
+                // Draw one-way passage
                 gc.fillRoundRect(centerX - size, centerY - size * 0.5, size * 2, size, 5, 5);
                 gc.setFill(Color.WHITE);
-                // 箭头
+                // Arrow
                 gc.fillPolygon(
                         new double[]{centerX - size * 0.5, centerX + size * 0.5, centerX - size * 0.5},
                         new double[]{centerY - size * 0.3, centerY, centerY + size * 0.3},
@@ -654,7 +654,7 @@ public class SceneManager {
                 );
             }
             case "blindtrap" -> {
-                // 绘制致盲陷阱
+                // Draw blind trap
                 gc.fillRoundRect(centerX - size, centerY - size, size * 2, size * 2, 8, 8);
                 gc.setFill(Color.BLACK);
                 gc.fillOval(centerX - size * 0.5, centerY - size * 0.5, size, size);
@@ -663,7 +663,7 @@ public class SceneManager {
                 gc.strokeOval(centerX - size * 0.5, centerY - size * 0.5, size, size);
             }
             case "magnet" -> {
-                // 绘制磁铁（U形）
+                // Draw magnet (U-shape)
                 gc.setStroke(Color.web(element.color()));
                 gc.setLineWidth(6);
                 gc.strokeArc(centerX - size * 0.6, centerY - size * 0.6,
@@ -674,7 +674,7 @@ public class SceneManager {
                 gc.fillRect(centerX + size * 0.4, centerY - size * 0.1, size * 0.3, size * 0.6);
             }
             case "shield" -> {
-                // 绘制护盾
+                // Draw shield
                 gc.setFill(Color.web(element.color()));
                 gc.fillOval(centerX - size * 0.8, centerY - size * 0.8, size * 1.6, size * 1.6);
                 gc.setFill(Color.web("#1A1A2E"));
@@ -683,20 +683,20 @@ public class SceneManager {
                 gc.fillOval(centerX - size * 0.3, centerY - size * 0.3, size * 0.6, size * 0.6);
             }
             case "wallpass" -> {
-                // 绘制穿墙术（半透明墙+穿越效果）
+                // Draw wall pass (semi-transparent wall + pass-through effect)
                 gc.setGlobalAlpha(0.5);
                 gc.setFill(Color.GRAY);
                 gc.fillRect(centerX - size * 0.8, centerY - size * 0.8, size * 1.6, size * 1.6);
                 gc.setGlobalAlpha(1.0);
                 gc.setFill(Color.web(element.color()));
                 gc.fillOval(centerX - size * 0.4, centerY - size * 0.4, size * 0.8, size * 0.8);
-                // 穿越线条
+                // Pass-through lines
                 gc.setStroke(Color.web(element.color()));
                 gc.setLineWidth(2);
                 gc.strokeLine(centerX - size, centerY, centerX + size, centerY);
             }
             default -> {
-                // 默认：圆形
+                // Default: circle
                 gc.fillOval(centerX - size * 0.8, centerY - size * 0.8, size * 1.6, size * 1.6);
             }
         }
@@ -705,20 +705,20 @@ public class SceneManager {
     private void drawGhostIcon(GraphicsContext gc, double x, double y, double size, String color) {
         gc.setFill(Color.web(color));
 
-        // 上半部分（半圆）
+        // Top part (semicircle)
         gc.fillArc(x - size, y - size, size * 2, size * 2, 0, 180, ArcType.ROUND);
 
-        // 下半部分（矩形）
+        // Bottom part (rectangle)
         gc.fillRect(x - size, y, size * 2, size * 0.7);
 
-        // 波浪底部
+        // Wave bottom
         double waveY = y + size * 0.7;
         double waveWidth = size * 2 / 3.0;
         for (int i = 0; i < 3; i++) {
             gc.fillOval(x - size + i * waveWidth, waveY - waveWidth / 4, waveWidth, waveWidth / 2);
         }
 
-        // 眼睛
+        // Eyes
         gc.setFill(Color.WHITE);
         gc.fillOval(x - size * 0.5, y - size * 0.4, size * 0.4, size * 0.5);
         gc.fillOval(x + size * 0.1, y - size * 0.4, size * 0.4, size * 0.5);
@@ -848,7 +848,7 @@ public class SceneManager {
                         "-fx-cursor: hand;"
         );
 
-        // 鼠标悬停效果
+        // Mouse hover effect
         button.setOnMouseEntered(e -> button.setStyle(
                 "-fx-background-color: #0F3460; " +
                         "-fx-text-fill: #E94560; " +
