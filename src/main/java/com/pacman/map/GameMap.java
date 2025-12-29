@@ -8,6 +8,8 @@ import com.pacman.map.tile.Tile;
 import com.pacman.map.tile.TileType;
 import com.pacman.util.Constants;
 import com.pacman.util.Direction;
+import com.pacman.util.SoundManager;
+import com.pacman.util.SoundManager.SoundType;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
@@ -366,9 +368,11 @@ public class GameMap {
                     );
                     if (dist <= Constants.MAGNET_RANGE) {
                         dot.collect();
+                        SoundManager.getInstance().play(SoundType.EAT_DOT);
                     }
                 } else {
                     dot.collect();
+                    SoundManager.getInstance().play(SoundType.EAT_DOT);
                 }
             }
         }
@@ -383,15 +387,17 @@ public class GameMap {
                     );
                     if (dist <= Constants.MAGNET_RANGE) {
                         dot.collect();
+                        SoundManager.getInstance().play(SoundType.EAT_DOT);
                     }
                 }
             }
         }
-        
+
         // 收集道具
         for (Item item : items) {
             if (!item.isCollected() && item.canBeCollectedBy(player)) {
                 item.collect(player);
+                SoundManager.getInstance().play(SoundType.ITEM_PICKUP);
             }
         }
         

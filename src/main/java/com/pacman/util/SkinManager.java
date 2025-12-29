@@ -70,15 +70,39 @@ public class SkinManager {
             for (Direction dir : Direction.validDirections()) {
                 String imagePath = "/images/player/" + skinPrefix + "_" + dir.name().toLowerCase() + ".png";
                 try {
+                    java.io.InputStream is = getClass().getResourceAsStream(imagePath);
+                    if (is == null) {
+                        System.err.println("Resource not found: " + imagePath);
+                        continue;
+                    }
+
                     Image image = new Image(
-                            getClass().getResourceAsStream(imagePath),
+                            is,
                             DISPLAY_SIZE,  // 请求宽度
                             DISPLAY_SIZE,  // 请求高度
                             true,          // 保持比例
                             true           // 平滑缩放
                     );
+
+                    // 检查图片是否加载成功
+                    if (image.isError()) {
+                        System.err.println("Failed to load skin image (error): " + imagePath);
+                        if (image.getException() != null) {
+                            image.getException().printStackTrace();
+                        }
+                        continue;
+                    }
+
+                    // 检查图片尺寸是否有效
+                    if (image.getWidth() <= 0 || image.getHeight() <= 0) {
+                        System.err.println("Invalid image dimensions for: " + imagePath +
+                                " (width=" + image.getWidth() + ", height=" + image.getHeight() + ")");
+                        continue;
+                    }
+
                     directionImages.put(dir, image);
-                    System.out.println("Loaded skin image: " + imagePath);
+                    System.out.println("Loaded skin image: " + imagePath +
+                            " (width=" + image.getWidth() + ", height=" + image.getHeight() + ")");
                 } catch (Exception e) {
                     System.err.println("Failed to load skin image: " + imagePath);
                     e.printStackTrace();
