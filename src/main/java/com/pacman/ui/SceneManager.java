@@ -34,7 +34,7 @@ public class SceneManager {
     private static SceneManager instance;
     private Stage primaryStage;
     private Game game;
-    private int unlockedLevel = Constants.TOTAL_LEVELS; // TODO: Change to 1 for release
+    private int unlockedLevel = Constants.TOTAL_LEVELS;
 
     private SceneManager() {}
 

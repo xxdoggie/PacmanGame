@@ -19,7 +19,7 @@ public final class Constants {
     // Game settings
     public static final int FPS = 120;
     public static final long FRAME_TIME = 1_000_000_000L / FPS;
-    public static final int DEFAULT_LIVES = 100;
+    public static final int DEFAULT_LIVES = 3;
     public static final int TOTAL_LEVELS = 30;
     
     // Player settings
