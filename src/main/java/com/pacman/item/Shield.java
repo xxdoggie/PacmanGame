@@ -5,40 +5,30 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
 /**
- * 护盾道具
- * 效果：抵挡一次敌人碰撞
+ * Shield item (OOP: Inheritance from Item)
+ * Effect: Blocks one enemy collision
  */
 public class Shield extends Item {
-    
-    /**
-     * 构造函数
-     * @param gridX 格子X坐标
-     * @param gridY 格子Y坐标
-     */
     public Shield(int gridX, int gridY) {
         super(gridX, gridY, ItemType.SHIELD);
     }
-    
+
     @Override
     protected void renderIcon(GraphicsContext gc, double x, double y) {
-        // 绘制盾牌图标
         gc.setFill(Color.WHITE);
-        
-        // 盾牌形状
         double[] xPoints = {x, x - 7, x - 6, x, x + 6, x + 7};
         double[] yPoints = {y - 7, y - 3, y + 5, y + 8, y + 5, y - 3};
         gc.fillPolygon(xPoints, yPoints, 6);
-        
-        // 盾牌中心的十字
+
         gc.setStroke(Color.web(type.getColor()));
         gc.setLineWidth(2);
         gc.strokeLine(x, y - 4, x, y + 4);
         gc.strokeLine(x - 3, y, x + 3, y);
     }
-    
+
     @Override
     public void applyEffect(Player player) {
-        player.addEffect(ItemType.SHIELD, 0); // 护盾是一次性的
-        System.out.println("获得护盾！可抵挡一次攻击");
+        player.addEffect(ItemType.SHIELD, 0);
+        System.out.println("Shield obtained! Blocks one attack");
     }
 }

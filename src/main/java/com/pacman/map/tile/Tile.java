@@ -10,27 +10,13 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
 /**
- * 地图格子基类
- * 所有地图元素的父类
+ * Base tile class for all map elements
  */
 public class Tile {
-    
-    /** 格子X坐标 */
-    protected int gridX;
-    
-    /** 格子Y坐标 */
-    protected int gridY;
-    
-    /** 格子类型 */
+    protected int gridX, gridY;
     protected TileType type;
-    
-    /** 格子方向（用于单向通道、跳板等） */
     protected Direction direction;
-    
-    /** 关联的另一个格子（用于传送门） */
     protected Tile linkedTile;
-
-    /** 游戏地图引用（用于跳板落点检查） */
     protected com.pacman.map.GameMap gameMap;
 
     /**

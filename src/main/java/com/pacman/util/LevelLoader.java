@@ -12,45 +12,31 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
 /**
- * 关卡加载器
- * 负责从JSON文件加载关卡数据并构建GameMap
+ * Level loader - loads level data from JSON and builds GameMap
  */
 public class LevelLoader {
-    
-    /** Gson实例 */
     private static final Gson gson = new GsonBuilder().create();
-    
-    /**
-     * 从资源文件加载关卡
-     * @param levelNumber 关卡编号
-     * @return Level对象，加载失败返回null
-     */
+
     public static Level loadLevel(int levelNumber) {
         String path = "/levels/level_" + levelNumber + ".json";
-        
+
         try (InputStream is = LevelLoader.class.getResourceAsStream(path)) {
             if (is == null) {
-                System.err.println("关卡文件未找到: " + path);
+                System.err.println("Level file not found: " + path);
                 return createDefaultLevel(levelNumber);
             }
-            
+
             InputStreamReader reader = new InputStreamReader(is, StandardCharsets.UTF_8);
             Level level = gson.fromJson(reader, Level.class);
             level.setLevelNumber(levelNumber);
-            
             return level;
         } catch (Exception e) {
-            System.err.println("加载关卡失败: " + e.getMessage());
+            System.err.println("Failed to load level: " + e.getMessage());
             e.printStackTrace();
             return createDefaultLevel(levelNumber);
         }
     }
     
-    /**
-     * 根据Level数据构建GameMap
-     * @param level 关卡数据
-     * @return 构建好的GameMap
-     */
     public static GameMap buildGameMap(Level level) {
         GameMap map = new GameMap();
         
@@ -105,11 +91,6 @@ public class LevelLoader {
         return map;
     }
     
-    /**
-     * 字符转换为地图格子类型
-     * @param c 字符
-     * @return TileType
-     */
     private static TileType charToTileType(char c) {
         return switch (c) {
             case '#', 'W' -> TileType.WALL;
@@ -120,15 +101,10 @@ public class LevelLoader {
             case '+' -> TileType.SPEED_UP;
             case '-' -> TileType.SLOW_DOWN;
             case 'B' -> TileType.BLIND_TRAP;
-            default -> TileType.FLOOR; // '.', ' ', 或其他字符
+            default -> TileType.FLOOR;
         };
     }
-    
-    /**
-     * 创建默认关卡（用于JSON文件不存在时）
-     * @param levelNumber 关卡编号
-     * @return 默认关卡
-     */
+
     public static Level createDefaultLevel(int levelNumber) {
         Level level = new Level();
         level.setLevelNumber(levelNumber);

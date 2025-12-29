@@ -7,59 +7,41 @@ import java.util.EnumMap;
 import java.util.Map;
 
 /**
- * 音效管理器（单例模式）
- * 负责加载和播放游戏音效
+ * Sound manager (OOP: Singleton pattern)
+ * Manages and plays game sound effects
  */
 public class SoundManager {
-
-    /** 单例实例 */
     private static SoundManager instance;
 
-    /** 音效类型枚举 */
     public enum SoundType {
-        EAT_DOT("eat_dot", 100),          // 吃豆：100ms冷却
-        HURT("hurt", 500),                 // 受伤：500ms冷却
-        JUMP("jump", 200),                 // 跳板
-        SPEED_UP("speed_up", 300),         // 加速
-        SLOW_DOWN("slow_down", 300),       // 减速
-        TELEPORT("teleport", 300),         // 传送
-        ITEM_PICKUP("item_pickup", 200),   // 吃到道具
-        COUNTDOWN("countdown", 0),         // 倒计时：无冷却
-        LEVEL_COMPLETE("level_complete", 0), // 过关
-        GAME_OVER("game_over", 0);         // 失败
+        EAT_DOT("eat_dot", 100),
+        HURT("hurt", 500),
+        JUMP("jump", 200),
+        SPEED_UP("speed_up", 300),
+        SLOW_DOWN("slow_down", 300),
+        TELEPORT("teleport", 300),
+        ITEM_PICKUP("item_pickup", 200),
+        COUNTDOWN("countdown", 0),
+        LEVEL_COMPLETE("level_complete", 0),
+        GAME_OVER("game_over", 0);
 
         private final String fileName;
-        private final long cooldownMs;  // 冷却时间（毫秒）
+        private final long cooldownMs;
 
         SoundType(String fileName, long cooldownMs) {
             this.fileName = fileName;
             this.cooldownMs = cooldownMs;
         }
 
-        public String getFileName() {
-            return fileName;
-        }
-
-        public long getCooldownMs() {
-            return cooldownMs;
-        }
+        public String getFileName() { return fileName; }
+        public long getCooldownMs() { return cooldownMs; }
     }
 
-    /** 音效缓存 */
     private Map<SoundType, AudioClip> sounds;
-
-    /** 上次播放时间（用于冷却控制） */
     private Map<SoundType, Long> lastPlayTime;
-
-    /** 音效是否启用 */
     private boolean soundEnabled;
-
-    /** 音量（0.0 - 1.0） */
     private double volume;
 
-    /**
-     * 私有构造函数
-     */
     private SoundManager() {
         this.sounds = new EnumMap<>(SoundType.class);
         this.lastPlayTime = new EnumMap<>(SoundType.class);
@@ -68,9 +50,6 @@ public class SoundManager {
         loadAllSounds();
     }
 
-    /**
-     * 获取单例实例
-     */
     public static SoundManager getInstance() {
         if (instance == null) {
             instance = new SoundManager();
@@ -78,9 +57,6 @@ public class SoundManager {
         return instance;
     }
 
-    /**
-     * 加载所有音效
-     */
     private void loadAllSounds() {
         for (SoundType type : SoundType.values()) {
             String soundPath = "/sounds/" + type.getFileName() + ".wav";
@@ -101,40 +77,26 @@ public class SoundManager {
         }
     }
 
-    /**
-     * 播放音效（使用冷却时间控制频率，不使用stop避免音频竞争）
-     * @param type 音效类型
-     */
+    /** Play sound with cooldown control */
     public void play(SoundType type) {
-        if (!soundEnabled) {
-            return;
-        }
+        if (!soundEnabled) return;
 
         AudioClip clip = sounds.get(type);
-        if (clip == null) {
-            return;
-        }
+        if (clip == null) return;
 
-        // 检查冷却时间
         long now = System.currentTimeMillis();
         long cooldown = type.getCooldownMs();
         if (cooldown > 0) {
             Long lastTime = lastPlayTime.get(type);
             if (lastTime != null && (now - lastTime) < cooldown) {
-                return; // 还在冷却中，跳过
+                return; // Still in cooldown
             }
         }
 
-        // 直接播放，不调用stop()（避免音频系统竞争问题）
         clip.play(volume);
         lastPlayTime.put(type, now);
     }
 
-    /**
-     * 播放音效（自定义音量）
-     * @param type 音效类型
-     * @param customVolume 自定义音量（0.0 - 1.0）
-     */
     public void play(SoundType type, double customVolume) {
         if (!soundEnabled) {
             return;
