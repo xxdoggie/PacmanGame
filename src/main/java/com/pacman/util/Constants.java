@@ -53,58 +53,58 @@ public final class Constants {
     // Colors
     public static final String COLOR_PLAYER = "#FFFF00";
     
-    /** 豆子颜色 */
+    /** Dot color */
     public static final String COLOR_DOT = "#FFFFFF";
-    
-    /** 墙壁颜色 */
+
+    /** Wall color */
     public static final String COLOR_WALL = "#1E90FF";
-    
-    /** 地板颜色 */
+
+    /** Floor color */
     public static final String COLOR_FLOOR = "#1A1A2E";
-    
-    /** 传送门颜色 */
+
+    /** Portal color */
     public static final String COLOR_PORTAL = "#FF00FF";
-    
-    /** 单向通道颜色 */
+
+    /** One-way passage color */
     public static final String COLOR_ONE_WAY = "#00CED1";
-    
-    /** 冰面颜色 */
+
+    /** Ice tile color */
     public static final String COLOR_ICE = "#87CEEB";
-    
-    /** 跳板颜色 */
+
+    /** Jump pad color */
     public static final String COLOR_JUMP_PAD = "#32CD32";
-    
-    /** 加速带颜色 */
+
+    /** Speed up tile color */
     public static final String COLOR_SPEED_UP = "#FFA500";
-    
-    /** 减速带颜色 */
+
+    /** Slow down tile color */
     public static final String COLOR_SLOW_DOWN = "#8B4513";
-    
-    /** 致盲陷阱颜色 */
+
+    /** Blind trap color */
     public static final String COLOR_BLIND_TRAP = "#4B0082";
-    
-    /** 追踪者颜色 */
+
+    /** Chaser enemy color */
     public static final String COLOR_CHASER = "#FF0000";
-    
-    /** 游荡者颜色 */
+
+    /** Wanderer enemy color */
     public static final String COLOR_WANDERER = "#FFA07A";
-    
-    /** 猎手颜色 */
+
+    /** Hunter enemy color */
     public static final String COLOR_HUNTER = "#FF4500";
-    
-    /** 巡逻者颜色 */
+
+    /** Patroller enemy color */
     public static final String COLOR_PATROLLER = "#00FF00";
-    
-    /** 幻影颜色 */
+
+    /** Phantom enemy color */
     public static final String COLOR_PHANTOM = "#9370DB";
-    
-    /** 磁铁道具颜色 */
+
+    /** Magnet item color */
     public static final String COLOR_ITEM_MAGNET = "#C0C0C0";
-    
-    /** 护盾道具颜色 */
+
+    /** Shield item color */
     public static final String COLOR_ITEM_SHIELD = "#00BFFF";
-    
-    /** 穿墙道具颜色 */
+
+    /** Wall pass item color */
     public static final String COLOR_ITEM_WALL_PASS = "#FFD700";
     
     // UI settings
